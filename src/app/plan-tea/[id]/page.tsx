@@ -5,6 +5,7 @@ import Link from 'next/link';
 export default function PlanTeaForm({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = use(paramsPromise);
   const [formData, setFormData] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
@@ -19,10 +20,13 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
         const studentRes = await fetch(`/api/students/${params.id}`);
         const studentResult = await studentRes.json();
         
+        if (!studentRes.ok) throw new Error(studentResult.error || 'Error al cargar estudiante');
+
         const reportRes = await fetch(`/api/reports?run=${studentResult.data.run}&type=paec`);
         const reportResult = await reportRes.json();
 
         if (studentResult.success) {
+
           const student = studentResult.data;
           const report = reportResult.data || {};
           const perfil = report.perfil_data ? JSON.parse(report.perfil_data) : {};
@@ -83,9 +87,11 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
           const docsData = await docsRes.json();
           if (docsData.success) setDocuments(docsData.data);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error loading data:', error);
+        setError(error.message);
       }
+
     };
     fetchAllData();
   }, [params.id]);
@@ -185,7 +191,17 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
     setFormData({ ...formData, [listKey]: [...formData[listKey], emptyObj] });
   };
 
+  if (error) return (
+    <div style={{ padding: '4rem', textAlign: 'center' }}>
+      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>❌</div>
+      <h2 style={{ marginBottom: '1rem' }}>Error al cargar el informe</h2>
+      <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>{error}</p>
+      <Link href="/informes" className="btn btn-primary">Volver a la lista</Link>
+    </div>
+  );
+
   if (!formData) return <div style={{ padding: '2rem', textAlign: 'center' }}>Cargando Estructura PAEC...</div>;
+
 
   return (
     <div className="animate-in" style={{ maxWidth: '1000px', margin: '0 auto' }}>
