@@ -12,14 +12,17 @@ export async function POST(request: NextRequest) {
 
     // Sync student data if provided
     if (student_data) {
-      const { full_name, curso, fecha_nacimiento, diagnostico, profesor_jefe } = student_data;
+      const { full_name, curso, fecha_nacimiento, diagnostico, profesor_jefe, nombre_social, telefono, email } = student_data;
       
       // Update main student table
       await supabase.from('students').update({
         full_name,
         curso,
         fecha_nacimiento,
-        profesor_jefe
+        profesor_jefe,
+        nombre_social,
+        telefono,
+        email
       }).eq('run', run);
 
       // Update NEE table

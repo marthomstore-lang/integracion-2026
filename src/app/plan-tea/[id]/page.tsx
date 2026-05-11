@@ -47,13 +47,13 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
             estudianteNombre: student.full_name,
             estudianteRut: student.run,
             estudianteCurso: student.curso,
-            estudianteNombreSocial: perfil.estudianteNombreSocial || '',
-            estudianteFechaNac: perfil.estudianteFechaNac || student.fecha_nacimiento || '',
-            estudianteEdad: perfil.estudianteEdad || calculateAge(perfil.estudianteFechaNac || student.fecha_nacimiento) || '',
+            estudianteNombreSocial: student.nombre_social || perfil.estudianteNombreSocial || '',
+            estudianteFechaNac: student.fecha_nacimiento || perfil.estudianteFechaNac || '',
+            estudianteEdad: calculateAge(student.fecha_nacimiento || perfil.estudianteFechaNac) || perfil.estudianteEdad || '',
             diagnostico: student.diagnostico || 'TEA',
-            profesorJefe: perfil.profesorJefe || student.profesor_jefe || '',
-            estudianteCelular: perfil.estudianteCelular || '',
-            estudianteCorreo: perfil.estudianteCorreo || '',
+            profesorJefe: student.profesor_jefe || perfil.profesorJefe || '',
+            estudianteCelular: student.telefono || perfil.estudianteCelular || '',
+            estudianteCorreo: student.email || perfil.estudianteCorreo || '',
             
             // Apoderados
             apoderadoPreferente: perfil.apoderadoPreferente || { nombres: '', paterno: '', materno: '', run: '', nombreSocial: '', celular: '', correo: '', parentesco: '' },
@@ -151,7 +151,10 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
             curso: formData.estudianteCurso,
             fecha_nacimiento: formData.estudianteFechaNac,
             diagnostico: formData.diagnostico,
-            profesor_jefe: formData.profesorJefe
+            profesor_jefe: formData.profesorJefe,
+            nombre_social: formData.estudianteNombreSocial,
+            telefono: formData.estudianteCelular,
+            email: formData.estudianteCorreo
           },
           data: {
             folio,

@@ -30,9 +30,9 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
             // Estudiante
             nombreIdentidad: student.full_name || '',
             run: student.run || '',
-            nombreSocial: report.nombreSocial || '',
-            fechaNacimiento: report.fechaNacimiento || student.fecha_nacimiento || '',
-            edad: report.edad || calculateAge(report.fechaNacimiento || student.fecha_nacimiento) || '',
+            nombreSocial: student.nombre_social || report.nombreSocial || '',
+            fechaNacimiento: student.fecha_nacimiento || report.fechaNacimiento || '',
+            edad: calculateAge(student.fecha_nacimiento || report.fechaNacimiento) || report.edad || '',
             cursoNivel: student.curso || '',
             establecimiento: report.establecimiento || 'LICEO CAMPANARIO',
 
@@ -134,7 +134,8 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
           student_data: {
             full_name: formData.nombreIdentidad,
             curso: formData.cursoNivel,
-            fecha_nacimiento: formData.fechaNacimiento
+            fecha_nacimiento: formData.fechaNacimiento,
+            nombre_social: formData.nombreSocial
           },
           data: formData
         })
