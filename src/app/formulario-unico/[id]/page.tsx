@@ -450,7 +450,7 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
           width: 210mm;
           min-height: 297mm;
           margin: 0 auto;
-          padding: ${compactMode ? '10mm 12mm' : '15mm 15mm'};
+          padding: 10mm 12mm;
           position: relative;
           color: #000;
           line-height: 1.35;
@@ -463,13 +463,13 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
           display: flex; 
           align-items: center; 
           gap: 2rem; 
-          margin-bottom: ${compactMode ? '0.5rem' : '1.5rem'}; 
+          margin-bottom: 0.5rem; 
           border-bottom: 3px solid #000; 
-          padding-bottom: ${compactMode ? '0.5rem' : '1rem'}; 
-          padding-top: ${compactMode ? '0' : '0.5rem'};
+          padding-bottom: 0.5rem; 
+          padding-top: 0;
         }
         .gov-logo img { 
-          height: ${compactMode ? '55px' : '70px'}; 
+          height: 60px; 
           filter: grayscale(0.2); 
           transition: all 0.3s ease;
         }
@@ -490,14 +490,14 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
         }
 
         .doc-section { 
-          margin-bottom: ${compactMode ? '0.75rem' : '1.25rem'}; 
+          margin-bottom: 0.75rem; 
           border: 1.5px solid #000; 
           break-inside: avoid;
           page-break-inside: avoid;
         }
         .section-title { 
           background: #fee2e2; 
-          padding: ${compactMode ? '0.3rem 0.6rem' : '0.5rem 0.75rem'}; 
+          padding: 0.3rem 0.6rem; 
           font-size: 0.75rem; 
           font-weight: 900; 
           border-bottom: 1.5px solid #000; 
@@ -510,10 +510,10 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
         .cell { 
           background: white; 
           border: 0.5px solid #000; 
-          padding: ${compactMode ? '0.2rem 0.5rem' : '0.4rem 0.75rem'}; 
+          padding: 0.2rem 0.5rem; 
           display: flex; 
           flex-direction: column; 
-          min-height: ${compactMode ? '35px' : '45px'};
+          min-height: 35px;
         }
         .span-2 { grid-column: span 2; }
         .span-3 { grid-column: span 3; }
@@ -675,10 +675,10 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
             break-inside: avoid !important;
             page-break-inside: avoid !important;
             border: 2px solid #000 !important;
-            margin-bottom: 0.75rem !important;
+            margin-bottom: 0.5rem !important;
           }
           .grid-table { background: #000 !important; }
-          .cell { border: 0.5px solid #000 !important; padding: 0.3rem 0.6rem !important; }
+          .cell { border: 0.5px solid #000 !important; padding: 0.2rem 0.5rem !important; }
           .section-title { 
             -webkit-print-color-adjust: exact; 
             print-color-adjust: exact; 
