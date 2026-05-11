@@ -262,8 +262,73 @@ export default function ConfigPage() {
           </div>
         </section>
 
+        {/* Manual Student Entry Section */}
+        <section className="card shadow-lg" style={{ border: '1px solid rgba(16, 185, 129, 0.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+            <div style={{ fontSize: '2rem', background: 'rgba(16, 185, 129, 0.1)', padding: '0.75rem', borderRadius: '16px' }}>📝</div>
+            <div>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Ingreso Manual de Estudiante</h2>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Agrega un estudiante individualmente a la base de datos</p>
+            </div>
+          </div>
+
+          <form 
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const target = e.target as any;
+              const studentData = {
+                run: target.run.value,
+                full_name: target.full_name.value,
+                curso: target.curso.value,
+                diagnostico: target.diagnostico.value
+              };
+              
+              try {
+                const res = await fetch('/api/students', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(studentData)
+                });
+                const result = await res.json();
+                if (result.success) {
+                  alert('Estudiante agregado con éxito');
+                  target.reset();
+                } else {
+                  alert(result.error);
+                }
+              } catch (err) {
+                alert('Error al conectar con el servidor');
+              }
+            }}
+            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}
+          >
+            <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.7 }}>RUT / RUN</label>
+              <input type="text" name="run" className="select-input" placeholder="12.345.678-9" required />
+            </div>
+            <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.7 }}>NOMBRE COMPLETO</label>
+              <input type="text" name="full_name" className="select-input" placeholder="Nombres Apellidos" required />
+            </div>
+            <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.7 }}>CURSO</label>
+              <input type="text" name="curso" className="select-input" placeholder="Ej: 4° Básico A" required />
+            </div>
+            <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.7 }}>DIAGNÓSTICO NEE</label>
+              <input type="text" name="diagnostico" className="select-input" placeholder="Ej: TDAH, TEA, etc." />
+            </div>
+            <div style={{ gridColumn: 'span 2' }}>
+              <button type="submit" className="btn" style={{ background: 'var(--success)', color: 'white', width: '100%', padding: '1rem' }}>
+                ➕ Registrar Estudiante Manualmente
+              </button>
+            </div>
+          </form>
+        </section>
+
         {/* Excel Upload Section */}
         <section className="card shadow-lg">
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
             <div style={{ fontSize: '2rem', background: 'var(--secondary)', color: 'white', padding: '0.75rem', borderRadius: '16px' }}>📊</div>
             <div>
