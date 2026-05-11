@@ -4,11 +4,24 @@ import Link from 'next/link';
 // Removed fallbackStudents import to ensure empty state when no data exists
 
 export default function Dashboard() {
+  const [loadingAuth, setLoadingAuth] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [extractedData, setExtractedData] = useState<null | any>(null);
   const [students, setStudents] = useState<any[]>([]);
 
   useEffect(() => {
+    // Auth Check
+    const checkAuth = () => {
+      const cookies = document.cookie.split('; ');
+      const hasRole = cookies.some(c => c.startsWith('user_role='));
+      if (!hasRole) {
+        window.location.href = '/login';
+      } else {
+        setLoadingAuth(false);
+      }
+    };
+    checkAuth();
+
     const fetchStudents = async () => {
       try {
         const response = await fetch('/api/students');
@@ -22,6 +35,15 @@ export default function Dashboard() {
     };
     fetchStudents();
   }, []);
+
+  if (loadingAuth) {
+    return (
+      <div style={{ height: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="spinner"></div>
+      </div>
+    );
+  }
+
 
   const handleFileUpload = async (e: any) => {
     if (!e.target.files?.[0]) return;
