@@ -75,15 +75,42 @@ export default function Dashboard() {
 
   return (
     <div className="animate-in">
-      <header style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1>Gestión de Informes NEE</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '1.125rem' }}>Plataforma de seguimiento y documentación ministerial 2025</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '1.125rem' }}>Plataforma de seguimiento y documentación ministerial 2026</p>
         </div>
         <Link href="/config" className="btn btn-primary" style={{ height: 'fit-content' }}>
           + Nuevo Estudiante
         </Link>
       </header>
+
+      {/* Stats Section */}
+      <div className="dashboard-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem' }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>👥</div>
+          <div>
+            <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total Alumnos</p>
+            <p style={{ fontSize: '1.5rem', fontWeight: 800 }}>{students.length}</p>
+          </div>
+        </div>
+        
+        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem' }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>✅</div>
+          <div>
+            <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Informes Completos</p>
+            <p style={{ fontSize: '1.5rem', fontWeight: 800 }}>{students.filter((s: any) => (s.status_informe || s.estado) === 'COMPLETE').length}</p>
+          </div>
+        </div>
+
+        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem' }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: '#fff7ed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>⏳</div>
+          <div>
+            <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Pendientes</p>
+            <p style={{ fontSize: '1.5rem', fontWeight: 800 }}>{students.filter((s: any) => (s.status_informe || s.estado) !== 'COMPLETE').length}</p>
+          </div>
+        </div>
+      </div>
 
       {/* Upload Section */}
       <div className="card glass-card animate-in" style={{ marginBottom: '2.5rem', border: '2px dashed var(--primary)', background: 'rgba(99, 102, 241, 0.05)' }}>

@@ -98,6 +98,11 @@ export default function Sidebar() {
   const router = useRouter();
   const [user, setUser] = useState<{ name: string, role: string } | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMobileOpen(false); // Close sidebar when route changes on mobile
+  }, [pathname]);
 
   useEffect(() => {
     const cookies = document.cookie.split('; ').reduce((acc: any, curr) => {
@@ -131,48 +136,78 @@ export default function Sidebar() {
   const isAdmin = user?.role === 'admin';
 
   return (
-    <aside style={{
-      width: 'var(--sidebar-width)',
-      backgroundColor: 'var(--sidebar)',
-      color: 'white',
-      height: '100vh',
-      position: 'fixed',
-      left: 0,
-      top: 0,
-      padding: isCollapsed ? '1.5rem 0.5rem' : '2rem 1.5rem',
-      display: 'flex',
-      flexDirection: 'column',
-      zIndex: 100,
-      boxShadow: '4px 0 24px rgba(0,0,0,0.1)',
-      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-      overflow: 'hidden'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'space-between', marginBottom: '1rem' }}>
-        <div style={{ fontSize: '1.25rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ 
-            width: 40, 
-            height: 32, 
-            background: 'linear-gradient(135deg, var(--primary), var(--secondary))', 
-            borderRadius: 8, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)',
-            fontSize: '0.6rem'
-          }}>
-            PIE
-          </div>
-          {!isCollapsed && <span style={{ letterSpacing: '-0.025em', fontSize: '1.2rem' }}>PIE26.com</span>}
+    <>
+      {/* Mobile Header */}
+      <div className="mobile-header no-print">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ width: 32, height: 26, background: 'linear-gradient(135deg, var(--primary), var(--secondary))', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.5rem', fontWeight: 800 }}>PIE</div>
+          <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>PIE26.com</span>
         </div>
-        {!isCollapsed && (
-          <button 
-            onClick={() => setIsCollapsed(true)} 
-            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '1rem' }}
-          >
-            ◀
-          </button>
-        )}
+        <button 
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
+          style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.5rem', cursor: 'pointer' }}
+        >
+          {isMobileOpen ? '✕' : '☰'}
+        </button>
       </div>
+
+      {/* Mobile Backdrop */}
+      {isMobileOpen && (
+        <div 
+          onClick={() => setIsMobileOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000 }}
+          className="no-print"
+        />
+      )}
+
+      <aside 
+        className={`${isMobileOpen ? 'sidebar-mobile-active' : ''} no-print`}
+        style={{
+          width: 'var(--sidebar-width)',
+          backgroundColor: 'var(--sidebar)',
+          color: 'white',
+          height: '100vh',
+          position: 'fixed',
+          left: 0,
+          top: 0,
+          padding: isCollapsed ? '1.5rem 0.5rem' : '2rem 1.5rem',
+          display: 'flex',
+          flexDirection: 'column',
+          zIndex: 1001,
+          boxShadow: '4px 0 24px rgba(0,0,0,0.1)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          overflow: 'hidden',
+          transform: isMobileOpen ? 'translateX(0)' : undefined
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'space-between', marginBottom: '1rem' }}>
+          <div style={{ fontSize: '1.25rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ 
+              width: 40, 
+              height: 32, 
+              background: 'linear-gradient(135deg, var(--primary), var(--secondary))', 
+              borderRadius: 8, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)',
+              fontSize: '0.6rem'
+            }}>
+              PIE
+            </div>
+            {!isCollapsed && <span style={{ letterSpacing: '-0.025em', fontSize: '1.2rem' }}>PIE26.com</span>}
+          </div>
+          {!isCollapsed && (
+            <button 
+              onClick={() => setIsCollapsed(true)} 
+              className="no-mobile"
+              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '1rem' }}
+            >
+              ◀
+            </button>
+          )}
+        </div>
+
 
       {isCollapsed && (
         <button 
