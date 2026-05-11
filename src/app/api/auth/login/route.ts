@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json();
 
-    const user = db.prepare('SELECT id, username, full_name, role FROM users WHERE username = ? AND password = ?')
-      .get(username, password) as any;
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id, username, full_name, role')
+      .eq('username', username)
+      .eq('password', password)
+      .maybeSingle();
 
-    if (!user) {
+    if (error || !user) {
       return NextResponse.json({ error: 'Usuario o contraseña incorrectos' }, { status: 401 });
     }
 
@@ -17,8 +21,7 @@ export async function POST(request: NextRequest) {
       user 
     });
 
-    // In a real app, use a proper session/JWT
-    // For this local prototype, we'll set a simple cookie
+    // Set cookies for the session
     response.cookies.set('user_role', user.role, { path: '/' });
     response.cookies.set('user_name', user.full_name, { path: '/' });
 
@@ -27,3 +30,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
