@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, neeDb } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 
 export async function GET(
   request: NextRequest,
@@ -8,13 +8,21 @@ export async function GET(
   try {
     const { id } = await params;
 
-    const student = db.prepare('SELECT * FROM students WHERE id = ?').get(id) as any;
+    const { data: student, error: studentError } = await supabase
+      .from('students')
+      .select('*')
+      .eq('id', id)
+      .single();
     
-    if (!student) {
+    if (studentError || !student) {
       return NextResponse.json({ error: 'Estudiante no encontrado' }, { status: 404 });
     }
 
-    const nee = neeDb.prepare('SELECT diagnostico, fecha_diagnostico FROM student_nee WHERE run = ?').get(student.run) as any;
+    const { data: nee, error: neeError } = await supabase
+      .from('student_nee')
+      .select('diagnostico, fecha_diagnostico')
+      .eq('run', student.run)
+      .single();
     
     return NextResponse.json({ 
       success: true, 
@@ -29,3 +37,4 @@ export async function GET(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

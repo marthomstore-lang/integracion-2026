@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, neeDb } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 
 export async function GET() {
   try {
-    const students = db.prepare('SELECT * FROM students ORDER BY full_name ASC').all();
+    const { data: students, error: studentError } = await supabase
+      .from('students')
+      .select('*')
+      .order('full_name', { ascending: true });
+
+    if (studentError) throw studentError;
     
-    // Enrich with NEE data from the other database
+    const { data: neeData, error: neeError } = await supabase
+      .from('student_nee')
+      .select('run, diagnostico');
+
+    if (neeError) throw neeError;
+
+    // Enrich with NEE data
     const enrichedStudents = students.map((s: any) => {
-      const nee = neeDb.prepare('SELECT diagnostico FROM student_nee WHERE run = ?').get(s.run) as any;
+      const nee = neeData.find((n: any) => n.run === s.run);
       return {
         ...s,
         nee: nee?.diagnostico || 'S/I'
@@ -20,6 +31,7 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
 export async function PATCH(request: NextRequest) {
   try {
     const { id, full_name, curso, run, diagnostico } = await request.json();
@@ -27,13 +39,19 @@ export async function PATCH(request: NextRequest) {
     if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
 
     // Update main student data
-    db.prepare('UPDATE students SET full_name = ?, curso = ?, run = ? WHERE id = ?')
-      .run(full_name, curso, run, id);
+    const { error: updateError } = await supabase
+      .from('students')
+      .update({ full_name, curso, run })
+      .eq('id', id);
+
+    if (updateError) throw updateError;
 
     // Update NEE data if provided
     if (diagnostico !== undefined) {
-      neeDb.prepare('INSERT OR REPLACE INTO student_nee (run, diagnostico) VALUES (?, ?)')
-        .run(run, diagnostico);
+      const { error: neeError } = await supabase
+        .from('student_nee')
+        .upsert({ run, diagnostico });
+      if (neeError) throw neeError;
     }
 
     return NextResponse.json({ success: true, message: 'Estudiante actualizado correctamente' });
@@ -42,3 +60,4 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

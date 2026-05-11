@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
-import { db, neeDb } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
@@ -21,88 +21,71 @@ export async function POST(request: NextRequest) {
     const data = XLSX.utils.sheet_to_json(worksheet) as any[];
 
     let importedCount = 0;
+    const studentsToUpsert: any[] = [];
+    const neeToUpsert: any[] = [];
 
-    // Prepare statements
-    const insertStudent = db.prepare(`
-      INSERT OR REPLACE INTO students (id, run, full_name, curso, status_informe)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-
-    const insertGuardian = db.prepare(`
-      INSERT OR REPLACE INTO guardians (id, student_run, full_name, run, relationship)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-
-    const insertNee = neeDb.prepare(`
-      INSERT OR REPLACE INTO student_nee (run, diagnostico)
-      VALUES (?, ?)
-    `);
-
-    // Transactions for data integrity and speed
-    const studentTx = db.transaction((rows: any[]) => {
-      for (const row of rows) {
-        // Handle SIGE format (Run, Dígito Ver., Nombres, Apellido Paterno, Apellido Materno)
-        let studentRun = row['RUT Estudiante'] || row['RUN'] || row['Run'];
-        if (studentRun && row['Dígito Ver.'] !== undefined) {
-          studentRun = `${studentRun}-${row['Dígito Ver.']}`;
-        }
-        
-        let fullName = row['Nombre Completo'] || row['Nombre'];
-        if (!fullName && row['Nombres']) {
-          fullName = `${row['Apellido Paterno'] || ''} ${row['Apellido Materno'] || ''}, ${row['Nombres']}`.trim();
-        }
-
-        const studentId = row['ID'] || uuidv4();
-        
-        let curso = row['Curso'];
-        if (!curso && row['Desc Grado']) {
-          curso = `${row['Desc Grado']} ${row['Letra Curso'] || ''}`.trim();
-        }
-
-        const statusInforme = row['Estado Informe'] || 'PENDIENTE';
-
-        if (!studentRun || !fullName) continue;
-
-        insertStudent.run(studentId, studentRun, fullName, curso, statusInforme);
-
-        if (row['Nombre Apoderado']) {
-          insertGuardian.run(
-            uuidv4(),
-            studentRun,
-            row['Nombre Apoderado'],
-            row['RUT Apoderado'],
-            row['Parentesco']
-          );
-        }
-        importedCount++;
+    for (const row of data) {
+      let studentRun = row['RUT Estudiante'] || row['RUN'] || row['Run'];
+      if (studentRun && row['Dígito Ver.'] !== undefined) {
+        studentRun = `${studentRun}-${row['Dígito Ver.']}`;
       }
-    });
-
-    const neeTx = neeDb.transaction((rows: any[]) => {
-      for (const row of rows) {
-        let studentRun = row['RUT Estudiante'] || row['RUN'] || row['Run'];
-        if (studentRun && row['Dígito Ver.'] !== undefined) {
-          studentRun = `${studentRun}-${row['Dígito Ver.']}`;
-        }
-
-        const diagnostico = row['Diagnóstico NEE'] || row['Diagnóstico'];
-
-        if (studentRun && diagnostico) {
-          insertNee.run(studentRun, diagnostico);
-        }
+      
+      let fullName = row['Nombre Completo'] || row['Nombre'];
+      if (!fullName && row['Nombres']) {
+        fullName = `${row['Apellido Paterno'] || ''} ${row['Apellido Materno'] || ''}, ${row['Nombres']}`.trim();
       }
-    });
 
-    studentTx(data);
-    neeTx(data);
+      if (!studentRun || !fullName) continue;
+
+      const studentId = row['ID'] || uuidv4();
+      
+      let curso = row['Curso'];
+      if (!curso && row['Desc Grado']) {
+        curso = `${row['Desc Grado']} ${row['Letra Curso'] || ''}`.trim();
+      }
+
+      studentsToUpsert.push({
+        id: studentId,
+        run: studentRun,
+        full_name: fullName,
+        curso: curso,
+        status_informe: row['Estado Informe'] || 'PENDIENTE'
+      });
+
+      const diagnostico = row['Diagnóstico NEE'] || row['Diagnóstico'];
+      if (diagnostico) {
+        neeToUpsert.push({
+          run: studentRun,
+          diagnostico: diagnostico
+        });
+      }
+      importedCount++;
+    }
+
+    // Upsert students
+    if (studentsToUpsert.length > 0) {
+      const { error: studentError } = await supabase
+        .from('students')
+        .upsert(studentsToUpsert, { onConflict: 'run' });
+      if (studentError) throw studentError;
+    }
+
+    // Upsert NEE data
+    if (neeToUpsert.length > 0) {
+      const { error: neeError } = await supabase
+        .from('student_nee')
+        .upsert(neeToUpsert, { onConflict: 'run' });
+      if (neeError) throw neeError;
+    }
 
     return NextResponse.json({ 
       success: true, 
       count: importedCount,
-      message: `${importedCount} estudiantes importados y datos NEE sincronizados en base de datos independiente.` 
+      message: `${importedCount} estudiantes sincronizados con Supabase.` 
     });
   } catch (error: any) {
     console.error('Upload error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
