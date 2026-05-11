@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     const semester = data.semester || 1;
 
-    // Upsert into reports table
+    // Upsert into reports table in Supabase
     const { error } = await supabase
       .from('reports')
       .upsert({
@@ -58,4 +58,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+
 

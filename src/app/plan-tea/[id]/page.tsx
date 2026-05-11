@@ -1,6 +1,7 @@
 'use client';
 import { useState, use, useEffect } from 'react';
 import Link from 'next/link';
+import { calculateAge } from '@/lib/dateUtils';
 
 export default function PlanTeaForm({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = use(paramsPromise);
@@ -47,8 +48,8 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
             estudianteRut: student.run,
             estudianteCurso: student.curso,
             estudianteNombreSocial: perfil.nombreSocial || '',
-            estudianteFechaNac: perfil.fechaNac || '',
-            estudianteEdad: perfil.edad || '',
+            estudianteFechaNac: perfil.fechaNac || student.fecha_nacimiento || '',
+            estudianteEdad: perfil.edad || calculateAge(perfil.fechaNac || student.fecha_nacimiento) || '',
             diagnostico: student.diagnostico || 'TEA',
             profesorJefe: student.profesor_jefe || '',
             estudianteCelular: perfil.celular || '',
@@ -98,6 +99,16 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
     };
     fetchAllData();
   }, [params.id]);
+
+  // Recalculate age when birth date changes
+  useEffect(() => {
+    if (formData?.estudianteFechaNac) {
+      const newAge = calculateAge(formData.estudianteFechaNac);
+      if (newAge !== '---' && newAge !== formData.estudianteEdad) {
+        setFormData((prev: any) => ({ ...prev, estudianteEdad: newAge }));
+      }
+    }
+  }, [formData?.estudianteFechaNac]);
 
   const [documents, setDocuments] = useState<any[]>([]);
 
@@ -447,6 +458,42 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
           </table>
         </div>
 
+        {/* Floating Save Button */}
+        <button 
+          onClick={handleSave}
+          className="no-print"
+          style={{
+            position: 'fixed',
+            bottom: '2rem',
+            right: '2rem',
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            background: '#7c3aed',
+            color: 'white',
+            border: 'none',
+            fontSize: '1.75rem',
+            cursor: 'pointer',
+            boxShadow: '0 10px 25px rgba(124, 58, 237, 0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
+          title="Guardar Plan PAEC"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.1) translateY(-5px)';
+            e.currentTarget.style.boxShadow = '0 15px 30px rgba(124, 58, 237, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1) translateY(0)';
+            e.currentTarget.style.boxShadow = '0 10px 25px rgba(124, 58, 237, 0.4)';
+          }}
+        >
+          {saving ? '⌛' : '💾'}
+        </button>
+
         {/* SECTION 7: FIRMAS */}
         <div className="form-section" style={{ border: 'none' }}>
           <div className="grid-table" style={{ background: '#f1f5f9', gap: '1px', border: '1px solid #e2e8f0' }}>
@@ -471,38 +518,108 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        .form-section { margin-bottom: 2rem; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: white; }
-        .section-header { background: #f1f5f9; padding: 0.75rem 1rem; font-size: 0.9rem; font-weight: 800; color: #334155; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+
+        .animate-in { 
+          animation: fadeIn 0.4s ease-out; 
+          font-family: 'Inter', sans-serif;
+          background: #fdfdfd;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .form-section { 
+          margin-bottom: 2.5rem; 
+          border: 1px solid #e2e8f0; 
+          border-radius: 16px; 
+          overflow: hidden; 
+          background: white; 
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+          break-inside: avoid;
+        }
+        .section-header { 
+          background: #f8fafc; 
+          padding: 1rem 1.5rem; 
+          font-size: 0.85rem; 
+          font-weight: 800; 
+          color: #1e293b; 
+          border-bottom: 1px solid #e2e8f0; 
+          text-transform: uppercase; 
+          letter-spacing: 0.05em;
+        }
         
         .grid-table { display: grid; grid-template-columns: repeat(3, 1fr); background: #e2e8f0; gap: 1px; }
-        .cell { background: white; padding: 0.5rem 0.75rem; display: flex; flex-direction: column; gap: 0.25rem; }
+        .cell { background: white; padding: 0.75rem 1rem; display: flex; flex-direction: column; gap: 0.35rem; }
         .span-2 { grid-column: span 2; }
         .span-3 { grid-column: span 3; }
         
-        .cell label { font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
-        .cell input { border: none; font-size: 0.9rem; padding: 0.25rem 0; width: 100%; outline: none; }
+        .cell label { font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.025em; }
+        .cell input { border: none; font-size: 0.95rem; font-weight: 600; padding: 0.25rem 0; width: 100%; outline: none; color: #0f172a; }
         
-        .field-group { border-bottom: 1px solid #e2e8f0; }
-        .field-header { background: #f8fafc; padding: 0.5rem 1rem; font-size: 0.8rem; font-weight: 700; color: #475569; display: flex; justifyContent: space-between; alignItems: center; }
-        .field-header button { font-size: 0.65rem; background: #6366f1; color: white; border: none; padding: 0.2rem 0.5rem; borderRadius: 4px; cursor: pointer; }
-        .field-group textarea { width: 100%; min-height: 120px; padding: 1rem; border: none; font-size: 0.9375rem; line-height: 1.6; resize: vertical; }
+        .field-group { border-bottom: 1px solid #f1f5f9; }
+        .field-header { 
+          background: #fcfcfc; 
+          padding: 0.75rem 1.25rem; 
+          font-size: 0.75rem; 
+          font-weight: 700; 
+          color: #475569; 
+          display: flex; 
+          justify-content: space-between; 
+          align-items: center;
+          line-height: 1.4;
+        }
+        .field-header button { 
+          font-size: 0.65rem; 
+          background: #7c3aed; 
+          color: white; 
+          border: none; 
+          padding: 0.25rem 0.75rem; 
+          border-radius: 6px; 
+          cursor: pointer; 
+          font-weight: 800;
+        }
+        .field-group textarea { 
+          width: 100%; 
+          min-height: 100px; 
+          padding: 1.25rem; 
+          border: none; 
+          font-size: 0.95rem; 
+          line-height: 1.6; 
+          resize: vertical; 
+          font-family: inherit;
+          color: #334155;
+        }
         
         .paec-table { width: 100%; border-collapse: collapse; }
-        .paec-table th { background: #f1f5f9; padding: 0.75rem; font-size: 0.75rem; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        .paec-table td { padding: 0.5rem; border-bottom: 1px solid #f1f5f9; }
-        .paec-table textarea { width: 100%; border: none; min-height: 80px; font-size: 0.875rem; padding: 0.5rem; }
+        .paec-table th { background: #f8fafc; padding: 1rem; font-size: 0.7rem; text-align: left; border-bottom: 1px solid #e2e8f0; color: #64748b; text-transform: uppercase; }
+        .paec-table td { padding: 0.75rem; border-bottom: 1px solid #f1f5f9; }
+        .paec-table textarea { width: 100%; border: none; min-height: 80px; font-size: 0.9rem; padding: 0.5rem; font-family: inherit; }
 
         @media print {
           @page { margin: 1cm; size: auto; }
+          body { background: white !important; font-family: 'Inter', sans-serif !important; }
           .no-print, header, .btn { display: none !important; }
           .card { border: none !important; box-shadow: none !important; }
-          .form-section { break-inside: avoid; border: 1px solid #000 !important; margin-bottom: 1rem; }
-          .section-header { background: #eee !important; border-bottom: 1px solid #000 !important; color: black !important; }
-          .grid-table { background: #000 !important; }
-          .cell { background: white !important; }
-          .field-header { background: #eee !important; color: black !important; border-bottom: 1px solid #000 !important; }
+          .form-section { 
+            break-inside: avoid !important; 
+            border: 1.5px solid #000 !important; 
+            margin-bottom: 1.5rem; 
+            border-radius: 0 !important;
+          }
+          .section-header { 
+            background: #eee !important; 
+            border-bottom: 1.5px solid #000 !important; 
+            color: black !important; 
+            -webkit-print-color-adjust: exact;
+          }
+          .grid-table { background: #000 !important; gap: 1.5px !important; }
+          .cell { background: white !important; padding: 4px 8px !important; }
+          .cell label { color: #333 !important; }
+          .cell input { font-weight: 700 !important; color: black !important; }
+          .field-header { background: #f5f5f5 !important; color: black !important; border-bottom: 1px solid #000 !important; -webkit-print-color-adjust: exact; }
           .field-header button { display: none !important; }
-          textarea { height: auto !important; min-height: 0 !important; overflow: visible !important; }
+          textarea { height: auto !important; min-height: 0 !important; overflow: visible !important; color: black !important; font-weight: 500 !important; }
+          .paec-table th { background: #eee !important; border-bottom: 1px solid #000 !important; color: black !important; -webkit-print-color-adjust: exact; }
+          .paec-table td { border-bottom: 1px solid #000 !important; }
         }
       ` }} />
     </div>

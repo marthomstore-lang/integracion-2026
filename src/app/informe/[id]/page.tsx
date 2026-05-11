@@ -1,6 +1,7 @@
 'use client';
 import { useState, use, useEffect } from 'react';
 import Link from 'next/link';
+import { calculateAge, formatDate } from '@/lib/dateUtils';
 
 export default function InformeForm({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = use(paramsPromise);
@@ -79,50 +80,59 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
   }, [step, semester]);
 
   useEffect(() => {
-    const fetchStudent = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`/api/students/${params.id}`);
-        const result = await response.json();
-        if (result.success) {
-          const student = result.data;
+        // Fetch Student
+        const studentRes = await fetch(`/api/students/${params.id}`);
+        const studentResult = await studentRes.json();
+        
+        if (studentResult.success) {
+          const student = studentResult.data;
+          
+          // Fetch existing Report
+          const reportRes = await fetch(`/api/reports?run=${student.run}&type=familia&semester=${semester}`);
+          const reportResult = await reportRes.json();
+          const report = reportResult.data || {};
+
           setFormData({
-            folio: `2026-${params.id.slice(0, 4)}`,
+            folio: report.folio || `2026-${params.id.slice(0, 4)}`,
             estudianteNombre: student.full_name,
             estudianteRut: student.run,
-            estudianteFechaNac: '---', 
-            estudianteEdad: '---', 
+            estudianteFechaNac: formatDate(student.fecha_nacimiento), 
+            estudianteEdad: calculateAge(student.fecha_nacimiento), 
             estudianteCurso: student.curso,
             estudianteEstablecimiento: 'LICEO CAMPANARIO',
-            profesorJefe: student.profesor_jefe || '',
-            fechaDiagnostico: student.fecha_diagnostico || '',
-            profesionalNombre: '',
-            profesionalRut: '',
-            profesionalCargo: '',
-            profesionalTelefono: '',
-            profesionalEmail: '',
-            profesionalFechaInforme: new Date().toISOString().split('T')[0],
-            apoderadoNombre: '',
-            apoderadoRut: '',
-            apoderadoRelacion: 'Madre',
+            profesorJefe: report.profesor_jefe || student.profesor_jefe || '',
+            fechaDiagnostico: report.fecha_diagnostico || student.fecha_diagnostico || '',
+            profesionalNombre: report.profesional_data?.nombre || '',
+            profesionalRut: report.profesional_data?.rut || '',
+            profesionalCargo: report.profesional_data?.cargo || '',
+            profesionalTelefono: report.profesional_data?.telefono || '',
+            profesionalEmail: report.profesional_data?.email || '',
+            profesionalFechaInforme: report.profesional_data?.fecha || new Date().toISOString().split('T')[0],
+            apoderadoNombre: report.apoderado_data?.nombre || '',
+            apoderadoRut: report.apoderado_data?.rut || '',
+            apoderadoRelacion: report.apoderado_data?.relacion || 'Madre',
             diagnostico: student.diagnostico,
-            reportePsicopedagogico: '',
-            reportePsicologico: '',
-            reporteFonoaudiologico: '',
-            desempenoAcademico: '',
-            convivenciaSocial: '',
-            motivacionEscolar: '',
-            saludFisicaMental: '',
+            reportePsicopedagogico: report.reportes_area?.psicopedagogico || '',
+            reportePsicologico: report.reportes_area?.psicologico || '',
+            reporteFonoaudiologico: report.reportes_area?.fonoaudiologico || '',
+            reporteKinesiologico: report.reportes_area?.kinesiologico || '',
+            desempenoAcademico: report.desempeno_acad || '',
+            convivenciaSocial: report.convivencia_salud?.convivencia || '',
+            motivacionEscolar: report.convivencia_salud?.motivacion || '',
+            saludFisicaMental: report.convivencia_salud?.salud || '',
           });
         } else {
-          setError(result.error || 'No se encontró el estudiante en esta sesión.');
+          setError(studentResult.error || 'No se encontró el estudiante.');
         }
       } catch (err) {
-        console.error('Error fetching student:', err);
-        setError('Error de conexión con la base de datos temporal.');
+        console.error('Error fetching data:', err);
+        setError('Error de conexión con la base de datos.');
       }
     };
-    fetchStudent();
-  }, [params.id]);
+    fetchData();
+  }, [params.id, semester]);
 
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
@@ -423,26 +433,167 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
         <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }} className="no-print">
           <button onClick={prevStep} disabled={step === 1} className="btn" style={{ background: '#f1f5f9', opacity: step === 1 ? 0.5 : 1 }}>← Anterior</button>
           <div style={{ display: 'flex', gap: '1rem' }}>
-            <button className="btn" style={{ background: 'transparent' }} onClick={() => handleSave(false)}>Guardar</button>
-            {step < 4 ? <button onClick={nextStep} className="btn btn-primary">Siguiente</button> : <button onClick={() => handleSave(false)} className="btn" style={{ background: 'var(--success)', color: 'white' }}>Finalizar</button>}
+            <button className="btn" style={{ background: 'var(--primary)', color: 'white', fontWeight: 800, padding: '0.75rem 2rem', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)' }} onClick={() => handleSave(false)}>
+              {saving ? 'Guardando...' : '💾 GUARDAR DATOS'}
+            </button>
+            {step < 4 ? <button onClick={nextStep} className="btn btn-primary">Siguiente →</button> : null}
           </div>
         </div>
+
+        {/* Floating Save Button */}
+        <button 
+          onClick={() => handleSave(false)}
+          className="no-print"
+          style={{
+            position: 'fixed',
+            bottom: '2rem',
+            right: '2rem',
+            width: '60px',
+            height: '60px',
+            borderRadius: '50%',
+            background: 'var(--primary)',
+            color: 'white',
+            border: 'none',
+            fontSize: '1.5rem',
+            cursor: 'pointer',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            transition: 'transform 0.2s'
+          }}
+          title="Guardar Información"
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        >
+          {saving ? '⌛' : '💾'}
+        </button>
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-        label { font-size: 0.8125rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-        @media screen { .print-only, .print-area, .print-header { display: none !important; } .active-area { display: block !important; } }
-        @media print {
-          @page { margin: 2cm; size: letter; }
-          body { font-family: "Times New Roman", Times, serif !important; color: black !important; }
-          .print-header { display: block !important; }
-          aside, header, .stepper, .btn, .no-print { display: none !important; }
-          .card { box-shadow: none !important; border: none !important; padding: 0 !important; }
-          .print-only, .print-area, .active-area { display: block !important; margin-top: 1rem; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+
+        :root {
+          --primary: #4f46e5;
+          --primary-light: #e0e7ff;
+          --secondary: #0f172a;
+          --text: #1e293b;
+          --text-muted: #64748b;
+          --border: #e2e8f0;
+          --radius: 12px;
         }
-        .spinner { width: 40px; height: 40px; border: 4px solid rgba(99, 102, 241, 0.1); border-left-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .animate-in {
+          animation: fadeIn 0.5s ease-out;
+          font-family: 'Inter', sans-serif;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.025em; }
+        
+        .select-input {
+          padding: 0.75rem 1rem;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          font-size: 0.9rem;
+          font-weight: 600;
+          transition: all 0.2s;
+          background: #f8fafc;
+        }
+        .select-input:focus {
+          outline: none;
+          border-color: var(--primary);
+          box-shadow: 0 0 0 3px var(--primary-light);
+          background: white;
+        }
+
+        .btn {
+          padding: 0.75rem 1.5rem;
+          border-radius: var(--radius);
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s;
+          border: none;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
+
+        .card {
+          background: white;
+          border-radius: 20px;
+          border: 1px solid var(--border);
+          padding: 2.5rem;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        .glass-card {
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(8px);
+          border-radius: var(--radius);
+          padding: 1.5rem;
+        }
+
+        @media screen { 
+          .print-only, .print-area, .print-header { display: none !important; } 
+          .active-area { display: block !important; } 
+        }
+
+        @media print {
+          @page { margin: 15mm; size: letter; }
+          body { background: white; color: black; font-family: 'Inter', sans-serif !important; }
+          .no-print, aside, header, .stepper, .btn { display: none !important; }
+          
+          .card { 
+            box-shadow: none !important; 
+            border: none !important; 
+            padding: 0 !important; 
+          }
+          
+          .print-only, .print-area, .active-area { 
+            display: block !important; 
+            margin-top: 1.5rem; 
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+
+          h3 { 
+            color: black !important; 
+            border-bottom: 2px solid black !important;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem !important;
+            break-after: avoid;
+          }
+
+          .select-input {
+            border: none !important;
+            padding: 0.25rem 0 !important;
+            font-size: 1rem !important;
+            font-weight: 700 !important;
+            background: transparent !important;
+          }
+
+          section {
+            break-inside: avoid;
+            margin-bottom: 2rem;
+          }
+
+          textarea {
+            height: auto !important;
+            min-height: 0 !important;
+            overflow: visible !important;
+            border: 1px solid #eee !important;
+            padding: 1rem !important;
+          }
+        }
       ` }} />
     </div>
   );
