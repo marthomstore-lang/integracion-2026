@@ -278,8 +278,10 @@ export default function Sidebar() {
         )}
       </div>
     </aside>
+    </>
   );
 }
+
 
 function SidebarLink({ href, label, icon, active = false, isCollapsed }: { href: string, label: string, icon: string, active?: boolean, isCollapsed: boolean }) {
   return (
