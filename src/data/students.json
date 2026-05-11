@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "apellidos": "Sepúlveda Roa",
+    "nombres": "Andriu Ignacio Alejandro",
+    "run": "25.173.383-K",
+    "fecha_nacimiento": "2015-11-06",
+    "edad": "10 Años 4 Meses",
+    "curso": "3º Básico A",
+    "diagnostico": "Funcionamiento Intelectual Limítrofe",
+    "nee": "NEET",
+    "estado": "COMPLETE"
+  },
+  {
+    "id": 2,
+    "apellidos": "Alarcón Silva",
+    "nombres": "Benjamín Andrés",
+    "run": "22.345.678-9",
+    "fecha_nacimiento": "2014-05-12",
+    "edad": "11 Años",
+    "curso": "4º Básico B",
+    "diagnostico": "Trastorno por Déficit de Atención",
+    "nee": "NEET",
+    "estado": "PENDING"
+  },
+  {
+    "id": 3,
+    "apellidos": "Bustamante Jara",
+    "nombres": "Sofía Valentina",
+    "run": "23.123.456-k",
+    "fecha_nacimiento": "2016-08-20",
+    "edad": "9 Años",
+    "curso": "2º Básico A",
+    "diagnostico": "Dificultad Específica del Aprendizaje",
+    "nee": "NEEP",
+    "estado": "PENDING"
+  },
+  {
+    "id": 4,
+    "apellidos": "Cifuentes Lagos",
+    "nombres": "Matías Ignacio",
+    "run": "22.987.654-3",
+    "fecha_nacimiento": "2013-02-28",
+    "edad": "12 Años",
+    "curso": "6º Básico A",
+    "diagnostico": "Discapacidad Intelectual Leve",
+    "nee": "NEEP",
+    "estado": "COMPLETE"
+  },
+  {
+    "id": 5,
+    "apellidos": "Díaz Muñoz",
+    "nombres": "Valentina Paz",
+    "run": "23.456.789-0",
+    "fecha_nacimiento": "2015-01-15",
+    "edad": "10 Años",
+    "curso": "3º Básico A",
+    "diagnostico": "Trastorno del Espectro Autista",
+    "nee": "NEEP",
+    "estado": "PENDING"
+  }
+]
