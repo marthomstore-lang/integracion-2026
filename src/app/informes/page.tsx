@@ -1,26 +1,27 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import fallbackStudents from '@/data/students.json';
 
-export default function InformesList() {
+
+function InformesContent() {
+  const searchParams = useSearchParams();
   const [students, setStudents] = useState<any[]>([]);
   const [filterCourse, setFilterCourse] = useState('Todos');
   const [filterStatus, setFilterStatus] = useState('Todos');
-  const [filterType, setFilterType] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    // Handle query params for initial filter
-    const searchParams = new URLSearchParams(window.location.search);
-    const type = searchParams.get('type');
-    const run = searchParams.get('run');
-    
-    if (type === 'familia') setFilterType('Familia');
-    if (type === 'tea') setFilterType('TEA');
-    if (type === 'unico') setFilterType('Único');
-    if (run) setSearchQuery(run);
+  const typeParam = searchParams?.get('type');
+  const runParam = searchParams?.get('run');
 
+  // Derive filterType directly from URL to ensure instant updates
+  const filterType = typeParam === 'tea' ? 'PAEC' : 
+                    typeParam === 'familia' ? 'Familia' : 
+                    typeParam === 'unico' ? 'Único' : 'Todos';
+
+  useEffect(() => {
+    if (runParam) setSearchQuery(runParam);
 
     const fetchStudents = async () => {
       try {
@@ -37,7 +38,7 @@ export default function InformesList() {
       }
     };
     fetchStudents();
-  }, []);
+  }, [runParam]);
 
   const courses = Array.from(new Set(students.map(s => s.curso || s.course))).filter(Boolean);
 
@@ -57,12 +58,12 @@ export default function InformesList() {
       <header style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>
-            {filterType === 'Todos' ? '📄 Gestión de Informes' : `📄 Informe ${filterType}`}
+            {filterType === 'Todos' ? '📄 Gestión de Informes' : filterType === 'PAEC' ? '📄 Plan de Manejo Individual (PAEC)' : `📄 Informe ${filterType}`}
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '1.125rem' }}>
             {filterType === 'Todos' 
               ? 'Administración y seguimiento de documentos técnicos PIE.' 
-              : `Listado de estudiantes para generar o editar ${filterType === 'PAEC' ? 'el Plan de Manejo Individual' : `el Informe de ${filterType}`}.`}
+              : `Listado de estudiantes para generar o editar el ${filterType === 'PAEC' ? 'Plan de Manejo Individual' : `Informe de ${filterType}`}.`}
           </p>
         </div>
         {filterType !== 'Todos' && (
@@ -71,7 +72,6 @@ export default function InformesList() {
           </div>
         )}
       </header>
-
 
       {/* Stats Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
@@ -177,23 +177,24 @@ export default function InformesList() {
                         {filterType === 'Familia' ? '+ AGREGAR INFORME FAMILIA' : 'FAMILIA'}
                       </Link>
                     )}
-                    {(filterType === 'Todos' || filterType === 'TEA') && (
+                    {(filterType === 'Todos' || filterType === 'PAEC') && (
                       <Link 
                         href={`/plan-tea/${student.id}`} 
                         className="btn" 
                         style={{ 
                           padding: '0.35rem 0.6rem', 
                           fontSize: '0.7rem', 
-                          background: filterType === 'TEA' ? '#7c3aed' : '#f5f3ff', 
-                          color: filterType === 'TEA' ? 'white' : '#7c3aed',
+                          background: filterType === 'PAEC' ? '#7c3aed' : '#f5f3ff', 
+                          color: filterType === 'PAEC' ? 'white' : '#7c3aed',
                           fontWeight: 700,
                           border: '1px solid #ddd6fe',
-                          flex: filterType === 'TEA' ? 1 : 'none'
+                          flex: filterType === 'PAEC' ? 1 : 'none'
                         }}
                       >
-                        {filterType === 'TEA' ? '+ AGREGAR PLAN PAEC' : 'PAEC'}
+                        {filterType === 'PAEC' ? '+ AGREGAR PLAN PAEC' : 'PAEC'}
                       </Link>
                     )}
+
                     {(filterType === 'Todos' || filterType === 'Único') && (
                       <Link 
                         href={`/formulario-unico/${student.id}`} 
@@ -228,3 +229,13 @@ export default function InformesList() {
     </div>
   );
 }
+
+
+export default function InformesList() {
+  return (
+    <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Cargando filtros...</div>}>
+      <InformesContent />
+    </Suspense>
+  );
+}
+
