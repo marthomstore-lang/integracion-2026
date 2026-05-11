@@ -8,6 +8,8 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
   const [formData, setFormData] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
   const [activeAIField, setActiveAIField] = useState({ label: '', id: '' });
 
   useEffect(() => {
