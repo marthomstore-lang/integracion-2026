@@ -44,11 +44,14 @@ export async function POST(request: NextRequest) {
         curso = `${row['Desc Grado']} ${row['Letra Curso'] || ''}`.trim();
       }
 
+      const birthDate = row['Fecha Nacimiento'] || row['Fecha Nac.'] || row['Fec. Nac.'];
+
       studentsToUpsert.push({
         id: studentId,
         run: studentRun,
         full_name: fullName,
         curso: curso,
+        fecha_nacimiento: birthDate,
         status_informe: row['Estado Informe'] || 'PENDIENTE'
       });
 

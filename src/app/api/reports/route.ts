@@ -4,10 +4,31 @@ import { supabase } from '@/lib/supabase';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { type, run, data } = body;
+    const { type, run, data, student_data } = body;
 
     if (!run || !type || !data) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Sync student data if provided
+    if (student_data) {
+      const { full_name, curso, fecha_nacimiento, diagnostico, profesor_jefe } = student_data;
+      
+      // Update main student table
+      await supabase.from('students').update({
+        full_name,
+        curso,
+        fecha_nacimiento,
+        profesor_jefe
+      }).eq('run', run);
+
+      // Update NEE table
+      if (diagnostico) {
+        await supabase.from('student_nee').upsert({
+          run,
+          diagnostico
+        });
+      }
     }
 
     const semester = data.semester || 1;

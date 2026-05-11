@@ -131,6 +131,11 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
         body: JSON.stringify({
           type: 'unico',
           run: formData.run,
+          student_data: {
+            full_name: formData.nombreIdentidad,
+            curso: formData.cursoNivel,
+            fecha_nacimiento: formData.fechaNacimiento
+          },
           data: formData
         })
       });

@@ -47,13 +47,13 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
             estudianteNombre: student.full_name,
             estudianteRut: student.run,
             estudianteCurso: student.curso,
-            estudianteNombreSocial: perfil.nombreSocial || '',
-            estudianteFechaNac: perfil.fechaNac || student.fecha_nacimiento || '',
-            estudianteEdad: perfil.edad || calculateAge(perfil.fechaNac || student.fecha_nacimiento) || '',
+            estudianteNombreSocial: perfil.estudianteNombreSocial || '',
+            estudianteFechaNac: perfil.estudianteFechaNac || student.fecha_nacimiento || '',
+            estudianteEdad: perfil.estudianteEdad || calculateAge(perfil.estudianteFechaNac || student.fecha_nacimiento) || '',
             diagnostico: student.diagnostico || 'TEA',
-            profesorJefe: student.profesor_jefe || '',
-            estudianteCelular: perfil.celular || '',
-            estudianteCorreo: perfil.correo || '',
+            profesorJefe: perfil.profesorJefe || student.profesor_jefe || '',
+            estudianteCelular: perfil.estudianteCelular || '',
+            estudianteCorreo: perfil.estudianteCorreo || '',
             
             // Apoderados
             apoderadoPreferente: perfil.apoderadoPreferente || { nombres: '', paterno: '', materno: '', run: '', nombreSocial: '', celular: '', correo: '', parentesco: '' },
@@ -80,6 +80,9 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
 
             // Matriz de Crisis
             matrizCrisis: crisis,
+            
+            neet: perfil.neet || false,
+            neep: perfil.neep || false,
             
             observaciones: report.observaciones || '',
             colaboracionFamilia: perfil.colaboracionFamilia || '',
@@ -143,9 +146,18 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
         body: JSON.stringify({
           type: 'paec',
           run: formData.estudianteRut,
+          student_data: {
+            full_name: formData.estudianteNombre,
+            curso: formData.estudianteCurso,
+            fecha_nacimiento: formData.estudianteFechaNac,
+            diagnostico: formData.diagnostico,
+            profesor_jefe: formData.profesorJefe
+          },
           data: {
             folio,
             fecha_elaboracion: fechaElaboracion,
+            neet: formData.neet,
+            neep: formData.neep,
             perfil_data: JSON.stringify(perfilRest),
             matriz_crisis: JSON.stringify(matrizCrisis),
             acuerdos: formData.observaciones // Using acuerdos column for main observations
@@ -266,7 +278,7 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
             <div className="cell"><label>N° Folio</label><input value={formData.folio} readOnly /></div>
             <div className="cell"><label>Fecha Elaboración</label><input type="date" value={formData.fechaElaboracion} onChange={e => setFormData({...formData, fechaElaboracion: e.target.value})} /></div>
             
-            <div className="cell span-2"><label>Nombre completo</label><input value={formData.estudianteNombre} readOnly /></div>
+            <div className="cell span-2"><label>Nombre completo</label><input value={formData.estudianteNombre} onChange={e => setFormData({...formData, estudianteNombre: e.target.value})} /></div>
             <div className="cell"><label>RUN</label><input value={formData.estudianteRut} readOnly /></div>
             
             <div className="cell span-3"><label>Nombre Social</label><input value={formData.estudianteNombreSocial} onChange={e => setFormData({...formData, estudianteNombreSocial: e.target.value})} /></div>
@@ -277,12 +289,16 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
             <div className="cell span-2">
               <label>Diagnóstico N.E.E.</label>
               <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.7rem' }}><input type="checkbox" /> NEET</label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.7rem' }}><input type="checkbox" /> NEEP</label>
-                <input style={{ marginLeft: '1rem', borderBottom: '1px solid #ccc' }} value={formData.diagnostico} readOnly />
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.7rem' }}>
+                  <input type="checkbox" checked={formData.neet} onChange={e => setFormData({...formData, neet: e.target.checked})} /> NEET
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.7rem' }}>
+                  <input type="checkbox" checked={formData.neep} onChange={e => setFormData({...formData, neep: e.target.checked})} /> NEEP
+                </label>
+                <input style={{ marginLeft: '1rem', borderBottom: '1px solid #ccc', flex: 1 }} value={formData.diagnostico} onChange={e => setFormData({...formData, diagnostico: e.target.value})} />
               </div>
             </div>
-            <div className="cell"><label>Curso</label><input value={formData.estudianteCurso} readOnly /></div>
+            <div className="cell"><label>Curso</label><input value={formData.estudianteCurso} onChange={e => setFormData({...formData, estudianteCurso: e.target.value})} /></div>
             
             <div className="cell span-3"><label>Profesor(a) Jefe</label><input value={formData.profesorJefe} onChange={e => setFormData({...formData, profesorJefe: e.target.value})} /></div>
             
