@@ -368,17 +368,18 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
         </section>
 
         <footer className="doc-footer">
-          <div className="signature-area">
-            <div className="sig-line"></div>
-            <p>Firma y timbre responsable equipo gestión</p>
+          <div className="signatures-row">
+            <div className="signature-area">
+              <div className="sig-line"></div>
+              <p>Firma y timbre responsable equipo gestión</p>
+            </div>
+            <div className="signature-area">
+              <div className="sig-line"></div>
+              <p>Firma familiar o representante</p>
+            </div>
           </div>
-          <div className="signature-area">
-            <div className="sig-line"></div>
-            <p>Firma familiar o representante</p>
-          </div>
+          <div className="format-stamp">FORMATO MINISTERIAL OBLIGATORIO PARA LA EVALUACIÓN DE INGRESO Y REEVALUACIÓN (fin año 2)</div>
         </footer>
-
-        <div className="format-stamp">FORMATO MINISTERIAL OBLIGATORIO PARA LA EVALUACIÓN DE INGRESO Y REEVALUACIÓN (fin año 2)</div>
       </div>
 
       {/* Floating Save Button */}
@@ -574,27 +575,29 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
         }
 
         .doc-footer { 
+          margin-top: 3.5rem; 
+          padding: 0 2rem; 
+          display: flex;
+          flex-direction: column;
+          gap: 3rem;
+        }
+        .signatures-row {
           display: grid; 
           grid-template-columns: 1fr 1fr; 
           gap: 5rem; 
-          margin-top: 4rem; 
-          padding: 0 2rem; 
         }
         .signature-area { text-align: center; }
         .sig-line { border-top: 2px solid #000; margin-bottom: 0.75rem; }
         .signature-area p { font-size: 0.7rem; font-weight: 800; margin: 0; line-height: 1.4; color: #334155; }
 
         .format-stamp { 
-          position: absolute; 
-          bottom: 1.5rem; 
-          left: 0; 
-          right: 0; 
           text-align: center; 
           font-size: 0.65rem; 
           font-weight: 900; 
           text-transform: uppercase; 
           color: #94a3b8;
           letter-spacing: 1.5px;
+          margin-top: 1rem;
         }
 
         .floating-save { 
