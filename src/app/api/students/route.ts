@@ -98,3 +98,36 @@ export async function PATCH(request: NextRequest) {
   }
 }
 
+export async function DELETE(request: NextRequest) {
+  try {
+    const { id, all } = await request.json();
+
+    if (all) {
+      // Delete all reports first to avoid foreign key issues if any, but we don't have FKs
+      await supabase.from('reports').delete().neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+      await supabase.from('students').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('student_nee').delete().neq('run', '0');
+      return NextResponse.json({ success: true, message: 'Base de datos de estudiantes limpiada' });
+    }
+
+    if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+
+    // Find student to get RUN for NEE deletion
+    const { data: student } = await supabase.from('students').select('run').eq('id', id).single();
+    
+    if (student) {
+      await supabase.from('student_nee').delete().eq('run', student.run);
+      await supabase.from('reports').delete().eq('student_run', student.run);
+    }
+
+    const { error } = await supabase.from('students').delete().eq('id', id);
+    if (error) throw error;
+
+    return NextResponse.json({ success: true, message: 'Estudiante eliminado' });
+  } catch (error: any) {
+    console.error('Error deleting student:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+

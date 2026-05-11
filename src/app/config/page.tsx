@@ -38,6 +38,7 @@ export default function ConfigPage() {
   };
 
   const [users, setUsers] = useState<any[]>([]);
+  const [allStudents, setAllStudents] = useState<any[]>([]);
   const [newUser, setNewUser] = useState({ username: '', password: '', full_name: '', role: 'docente' });
   const [userLoading, setUserLoading] = useState(false);
 
@@ -47,9 +48,17 @@ export default function ConfigPage() {
     if (data.success) setUsers(data.data);
   };
 
+  const fetchStudents = async () => {
+    const res = await fetch('/api/students');
+    const data = await res.json();
+    if (data.success) setAllStudents(data.data);
+  };
+
   useState(() => {
     fetchUsers();
+    fetchStudents();
   });
+
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -268,7 +277,7 @@ export default function ConfigPage() {
             <div style={{ fontSize: '2rem', background: 'rgba(16, 185, 129, 0.1)', padding: '0.75rem', borderRadius: '16px' }}>📝</div>
             <div>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Ingreso Manual de Estudiante</h2>
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Agrega un estudiante individualmente a la base de datos</p>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Agrega un estudiante con todos sus datos técnicos</p>
             </div>
           </div>
 
@@ -280,7 +289,9 @@ export default function ConfigPage() {
                 run: target.run.value,
                 full_name: target.full_name.value,
                 curso: target.curso.value,
-                diagnostico: target.diagnostico.value
+                profesor_jefe: target.profesor_jefe.value,
+                diagnostico: target.diagnostico.value,
+                fecha_diagnostico: target.fecha_diagnostico.value
               };
               
               try {
@@ -293,6 +304,7 @@ export default function ConfigPage() {
                 if (result.success) {
                   alert('Estudiante agregado con éxito');
                   target.reset();
+                  fetchStudents();
                 } else {
                   alert(result.error);
                 }
@@ -300,34 +312,92 @@ export default function ConfigPage() {
                 alert('Error al conectar con el servidor');
               }
             }}
-            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}
+            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.25rem' }}
           >
-            <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.7 }}>RUT / RUN</label>
-              <input type="text" name="run" className="select-input" placeholder="12.345.678-9" required />
-            </div>
-            <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.7 }}>NOMBRE COMPLETO</label>
-              <input type="text" name="full_name" className="select-input" placeholder="Nombres Apellidos" required />
-            </div>
-            <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.7 }}>CURSO</label>
-              <input type="text" name="curso" className="select-input" placeholder="Ej: 4° Básico A" required />
-            </div>
-            <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.7 }}>DIAGNÓSTICO NEE</label>
-              <input type="text" name="diagnostico" className="select-input" placeholder="Ej: TDAH, TEA, etc." />
-            </div>
-            <div style={{ gridColumn: 'span 2' }}>
-              <button type="submit" className="btn" style={{ background: 'var(--success)', color: 'white', width: '100%', padding: '1rem' }}>
-                ➕ Registrar Estudiante Manualmente
+            <div className="form-group"><label style={{ fontSize: '0.7rem', fontWeight: 700 }}>RUT / RUN</label><input type="text" name="run" className="select-input" placeholder="12.345.678-9" required /></div>
+            <div className="form-group"><label style={{ fontSize: '0.7rem', fontWeight: 700 }}>NOMBRE COMPLETO</label><input type="text" name="full_name" className="select-input" placeholder="Nombres Apellidos" required /></div>
+            <div className="form-group"><label style={{ fontSize: '0.7rem', fontWeight: 700 }}>CURSO</label><input type="text" name="curso" className="select-input" placeholder="Ej: 4° Básico A" required /></div>
+            <div className="form-group"><label style={{ fontSize: '0.7rem', fontWeight: 700 }}>PROFESOR JEFE</label><input type="text" name="profesor_jefe" className="select-input" placeholder="Nombre del Profesor" /></div>
+            <div className="form-group"><label style={{ fontSize: '0.7rem', fontWeight: 700 }}>DIAGNÓSTICO NEE</label><input type="text" name="diagnostico" className="select-input" placeholder="Ej: TEA, TDAH..." /></div>
+            <div className="form-group"><label style={{ fontSize: '0.7rem', fontWeight: 700 }}>FECHA DIAGNÓSTICO</label><input type="date" name="fecha_diagnostico" className="select-input" /></div>
+            
+            <div style={{ gridColumn: 'span 3', marginTop: '1rem' }}>
+              <button type="submit" className="btn" style={{ background: 'var(--success)', color: 'white', width: '100%', padding: '1rem', fontWeight: 700 }}>
+                ➕ Registrar Estudiante Permanentemente
               </button>
             </div>
           </form>
         </section>
 
+        {/* Students List Management */}
+        <section className="card shadow-lg">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ fontSize: '2rem' }}>👥</div>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Gestión de Estudiantes</h2>
+            </div>
+            <button 
+              onClick={async () => {
+                if(confirm('¿BORRAR TODOS LOS ESTUDIANTES? Esta acción no se puede deshacer.')) {
+                  const res = await fetch('/api/students', { method: 'DELETE', body: JSON.stringify({ all: true }) });
+                  if ((await res.json()).success) fetchStudents();
+                }
+              }}
+              className="btn" 
+              style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', fontSize: '0.8rem' }}
+            >
+              🗑️ Borrar Todos (Limpiar Base de Datos)
+            </button>
+          </div>
+
+          <div className="table-container" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>RUT</th>
+                  <th>Curso</th>
+                  <th style={{ textAlign: 'right' }}>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {allStudents.map((s: any) => (
+                  <tr key={s.id}>
+                    <td>{s.full_name}</td>
+                    <td style={{ fontSize: '0.8rem', opacity: 0.7 }}>{s.run}</td>
+                    <td>{s.curso}</td>
+                    <td style={{ textAlign: 'right' }}>
+                      <button 
+                        onClick={async () => {
+                          if(confirm('¿Eliminar a ' + s.full_name + '?')) {
+                            const res = await fetch('/api/students', { 
+                              method: 'DELETE', 
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ id: s.id }) 
+                            });
+                            if ((await res.json()).success) fetchStudents();
+                          }
+                        }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}
+                      >
+                        ❌
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {allStudents.length === 0 && (
+                  <tr>
+                    <td colSpan={4} style={{ textAlign: 'center', padding: '3rem', opacity: 0.5 }}>No hay estudiantes registrados</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         {/* Excel Upload Section */}
         <section className="card shadow-lg">
+
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
             <div style={{ fontSize: '2rem', background: 'var(--secondary)', color: 'white', padding: '0.75rem', borderRadius: '16px' }}>📊</div>
