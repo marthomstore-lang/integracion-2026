@@ -7,14 +7,22 @@ function ReportsMenu({ pathname, isCollapsed }: { pathname: string, isCollapsed:
   const searchParams = useSearchParams();
   const type = searchParams?.get('type');
   
-  const [reportsOpen, setReportsOpen] = useState(
-    pathname?.includes('/informe') || 
-    pathname?.includes('/plan-tea') || 
-    pathname?.includes('/formulario-unico') ||
-    pathname === '/informes'
-  );
+  const [reportsOpen, setReportsOpen] = useState(false);
+
+  useEffect(() => {
+    if (pathname?.includes('/informe') || 
+        pathname?.includes('/plan-tea') || 
+        pathname?.includes('/formulario-unico') ||
+        pathname === '/informes') {
+      setReportsOpen(true);
+    }
+  }, [pathname]);
 
   if (isCollapsed) {
+    const isAnyActive = pathname?.includes('/informe') || 
+                        pathname?.includes('/plan-tea') || 
+                        pathname?.includes('/formulario-unico') ||
+                        pathname === '/informes';
     return (
       <Link href="/informes" className="sidebar-link" style={{
         display: 'flex',
@@ -22,13 +30,15 @@ function ReportsMenu({ pathname, isCollapsed }: { pathname: string, isCollapsed:
         justifyContent: 'center',
         padding: '0.875rem',
         borderRadius: '12px',
-        color: pathname?.includes('/informe') || pathname === '/informes' ? 'white' : 'rgba(255,255,255,0.6)',
-        textDecoration: 'none'
+        color: isAnyActive ? 'white' : 'rgba(255,255,255,0.6)',
+        textDecoration: 'none',
+        background: isAnyActive ? 'rgba(99, 102, 241, 0.15)' : 'transparent'
       }}>
         <span style={{ fontSize: '1.25rem' }}>📄</span>
       </Link>
     );
   }
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
