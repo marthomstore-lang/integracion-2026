@@ -111,49 +111,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-      {/* Upload Section */}
-      <div className="card glass-card animate-in" style={{ marginBottom: '2.5rem', border: '2px dashed var(--primary)', background: 'rgba(99, 102, 241, 0.05)' }}>
-        <div style={{ textAlign: 'center', padding: '1rem' }}>
-          <h3 style={{ marginBottom: '1rem' }}>📥 Extracción Inteligente de Datos</h3>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Sube el Informe Psicopedagógico o FUDEI (PDF/Excel) para pre-completar la ficha.</p>
-          
-          {!extractedData ? (
-            <div 
-              style={{ padding: '2rem', border: '1px dashed var(--border)', borderRadius: 'var(--radius)', cursor: 'pointer' }}
-              onClick={() => document.getElementById('file-upload')?.click()}
-            >
-              {isUploading ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-                  <div className="spinner"></div>
-                  <p>Analizando documento y extrayendo campos...</p>
-                </div>
-              ) : (
-                <div>
-                  <p style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Haz clic o arrastra un archivo aquí</p>
-                  <p style={{ fontSize: '0.875rem', opacity: 0.6 }}>Formatos soportados: .pdf, .xlsx, .csv</p>
-                </div>
-              )}
-              <input type="file" id="file-upload" hidden onChange={handleFileUpload} />
-            </div>
-          ) : (
-            <div className="animate-in" style={{ background: 'white', padding: '1.5rem', borderRadius: 'var(--radius)', textAlign: 'left', border: '1px solid var(--success)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <h4 style={{ color: 'var(--success)' }}>✅ Información Extraída con Éxito</h4>
-                <button className="btn" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }} onClick={() => setExtractedData(null)}>Limpiar</button>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.875rem' }}>
-                <div><strong>Nombre:</strong> {extractedData.name}</div>
-                <div><strong>RUT:</strong> {extractedData.run}</div>
-                <div><strong>Curso:</strong> {extractedData.course}</div>
-                <div><strong>Diagnóstico:</strong> {extractedData.diagnostico}</div>
-              </div>
-              <Link href="/informe/new" className="btn btn-primary" style={{ marginTop: '1.5rem', width: '100%' }}>
-                Crear Informe con estos Datos
-              </Link>
-            </div>
-          )}
-        </div>
-      </div>
 
 
       {students.length > 0 && (
