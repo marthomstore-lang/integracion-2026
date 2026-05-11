@@ -4,11 +4,15 @@ import fs from 'fs';
 
 // Ensure data directory exists if we want to store it there, 
 // but for now we'll put it in the root of the project as per common patterns in these tasks
-const DB_PATH = path.join(process.cwd(), 'students.db');
-const NEE_DB_PATH = path.join(process.cwd(), 'nee_data.db');
+const isVercel = process.env.VERCEL === '1';
+const storagePath = isVercel ? '/tmp' : process.cwd();
+
+const DB_PATH = path.join(storagePath, 'students.db');
+const NEE_DB_PATH = path.join(storagePath, 'nee_data.db');
 
 export const db = new Database(DB_PATH);
 export const neeDb = new Database(NEE_DB_PATH);
+
 
 // Initialize main students database
 db.exec(`

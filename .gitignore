@@ -51,3 +51,5 @@ service-account.json
 .env
 .env.local
 
+
+.vercel
