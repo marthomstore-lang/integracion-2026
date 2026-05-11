@@ -30,7 +30,15 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
           const student = studentResult.data;
           const report = reportResult.data || {};
           const perfil = report.perfil_data ? JSON.parse(report.perfil_data) : {};
-          const crisis = report.matriz_crisis ? JSON.parse(report.matriz_crisis) : {};
+          
+          // Ensure crisis matrix has all required phases even if empty or partial
+          const defaultCrisis = {
+            inicio: { manifestaciones: '', estrategias: '' },
+            crecimiento: { manifestaciones: '', estrategias: '' },
+            explosion: { manifestaciones: '', estrategias: '' },
+            recuperacion: { manifestaciones: '', estrategias: '' },
+          };
+          const crisis = { ...defaultCrisis, ...(report.matriz_crisis ? JSON.parse(report.matriz_crisis) : {}) };
 
           setFormData({
             folio: report.folio || `PAEC-${student.run.slice(0, 4)}-${new Date().getFullYear()}`,
@@ -70,12 +78,7 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
             diagnosticoExterno: perfil.diagnosticoExterno || [{ nombre: '', paterno: '', materno: '', profesion: '', telefono: '' }],
 
             // Matriz de Crisis
-            matrizCrisis: crisis || {
-              inicio: { manifestaciones: '', estrategias: '' },
-              crecimiento: { manifestaciones: '', estrategias: '' },
-              explosion: { manifestaciones: '', estrategias: '' },
-              recuperacion: { manifestaciones: '', estrategias: '' },
-            },
+            matrizCrisis: crisis,
             
             observaciones: report.observaciones || '',
             colaboracionFamilia: perfil.colaboracionFamilia || '',
