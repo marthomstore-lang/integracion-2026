@@ -1,12 +1,15 @@
 'use client';
 import { useState, use, useEffect } from 'react';
 import Link from 'next/link';
-import studentsData from '@/data/students.json';
 
 export default function FormularioUnico({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = use(paramsPromise);
-  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<any>(null);
+  const [saving, setSaving] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [activeAIField, setActiveAIField] = useState({ label: '', id: '' });
 
   useEffect(() => {
     const fetchStudent = async () => {
@@ -24,7 +27,6 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
             profesorJefe: student.profesor_jefe || '',
             fechaDiagnostico: student.fecha_diagnostico || '',
           });
-
         }
       } catch (error) {
         console.error('Error fetching student:', error);
@@ -32,12 +34,6 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
     };
     fetchStudent();
   }, [params.id]);
-
-
-  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [activeAIField, setActiveAIField] = useState({ label: '', id: '' });
 
   const openAIModal = async (fieldLabel: string, fieldId: string) => {
     setActiveAIField({ label: fieldLabel, id: fieldId });
@@ -71,39 +67,6 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
     setIsAIModalOpen(false);
   };
 
-  if (!formData) return <div style={{ padding: '2rem' }}>Cargando...</div>;
-
-  return (
-    <div className="animate-in" style={{ maxWidth: '1100px', margin: '0 auto' }}>
-      {/* AI Modal */}
-      {isAIModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }} className="no-print">
-          <div className="card shadow-2xl" style={{ width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', padding: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.25rem', color: 'var(--primary)' }}>✨ Asistente de Ideas IA</h2>
-              <button onClick={() => setIsAIModalOpen(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
-            </div>
-            {aiLoading ? (
-              <div style={{ padding: '4rem', textAlign: 'center' }}>
-                <div className="animate-spin" style={{ width: '40px', height: '40px', border: '4px solid var(--primary-light)', borderTopColor: 'var(--primary)', borderRadius: '50%', margin: '0 auto 1rem' }}></div>
-                <p>Analizando normativa y perfil del estudiante...</p>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {aiSuggestions && aiSuggestions.length > 0 && aiSuggestions.map((text, idx) => (
-                  <div key={idx} className="glass-card" style={{ padding: '1.5rem', border: '1px solid var(--border)', position: 'relative' }}>
-                    <p style={{ fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1rem' }}>{text}</p>
-                    <button onClick={() => useSuggestion(text)} className="btn" style={{ width: '100%', background: 'var(--primary)', color: 'white' }}>Seleccionar esta Versión</button>
-                  </div>
-                ))}
-                <button onClick={() => openAIModal(activeAIField.label, activeAIField.id)} style={{ padding: '1rem', border: '1px dashed var(--primary)', color: 'var(--primary)', cursor: 'pointer', borderRadius: '8px', background: 'none' }}>🔄 Regenerar más opciones</button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-  const [saving, setSaving] = useState(false);
-
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -135,11 +98,38 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
     }
   };
 
-  if (!formData) return <div style={{ padding: '2rem' }}>Cargando...</div>;
+  if (!formData) return <div style={{ padding: '2rem', textAlign: 'center' }}>Cargando Formulario Único...</div>;
 
   return (
     <div className="animate-in" style={{ maxWidth: '1100px', margin: '0 auto' }}>
-...
+      {/* AI Modal */}
+      {isAIModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }} className="no-print">
+          <div className="card shadow-2xl" style={{ width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', padding: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.25rem', color: 'var(--primary)' }}>✨ Asistente de Ideas IA</h2>
+              <button onClick={() => setIsAIModalOpen(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+            </div>
+            {aiLoading ? (
+              <div style={{ padding: '4rem', textAlign: 'center' }}>
+                <div className="animate-spin" style={{ width: '40px', height: '40px', border: '4px solid var(--primary-light)', borderTopColor: 'var(--primary)', borderRadius: '50%', margin: '0 auto 1rem' }}></div>
+                <p>Analizando normativa y perfil del estudiante...</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {aiSuggestions && aiSuggestions.length > 0 && aiSuggestions.map((text, idx) => (
+                  <div key={idx} className="glass-card" style={{ padding: '1.5rem', border: '1px solid var(--border)', position: 'relative' }}>
+                    <p style={{ fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1rem' }}>{text}</p>
+                    <button onClick={() => useSuggestion(text)} className="btn" style={{ width: '100%', background: 'var(--primary)', color: 'white' }}>Seleccionar esta Versión</button>
+                  </div>
+                ))}
+                <button onClick={() => openAIModal(activeAIField.label, activeAIField.id)} style={{ padding: '1rem', border: '1px dashed var(--primary)', color: 'var(--primary)', cursor: 'pointer', borderRadius: '8px', background: 'none' }}>🔄 Regenerar más opciones</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="no-print">
         <div>
           <Link href="/informes" style={{ color: 'var(--primary)', fontWeight: 600 }}>← Volver</Link>
@@ -152,7 +142,6 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
           <button onClick={() => window.print()} className="btn btn-primary">🖨️ Imprimir Formato Ministerial</button>
         </div>
       </header>
-
 
       <div className="card shadow-lg" style={{ padding: '2.5rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '3rem', borderBottom: '2px solid black', paddingBottom: '1rem' }}>
@@ -172,7 +161,6 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
             <div className="form-group"><label>Diagnóstico</label><input className="select-input" defaultValue={formData.diagnostico} /></div>
             <div className="form-group"><label>Fecha Diagnóstico</label><input type="date" className="select-input" value={formData.fechaDiagnostico} onChange={(e) => setFormData({...formData, fechaDiagnostico: e.target.value})} /></div>
           </div>
-
         </section>
 
         <section style={{ marginBottom: '2rem' }}>
@@ -236,4 +224,3 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
     </div>
   );
 }
-
