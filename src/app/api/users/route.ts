@@ -44,3 +44,20 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function PUT(request: NextRequest) {
+  try {
+    const { id, password } = await request.json();
+
+    if (!id || !password) {
+      return NextResponse.json({ error: 'ID y contraseña son requeridos' }, { status: 400 });
+    }
+
+    db.prepare('UPDATE users SET password = ? WHERE id = ?').run(password, id);
+
+    return NextResponse.json({ success: true, message: 'Contraseña actualizada correctamente' });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+

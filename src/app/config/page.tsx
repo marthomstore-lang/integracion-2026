@@ -75,6 +75,30 @@ export default function ConfigPage() {
     }
   };
 
+  const [editingUser, setEditingUser] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+
+  const handlePasswordUpdate = async (id: string) => {
+    if (!newPassword) return;
+    try {
+      const res = await fetch('/api/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, password: newPassword }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Contraseña actualizada');
+        setEditingUser(null);
+        setNewPassword('');
+      } else {
+        alert(data.error);
+      }
+    } catch (err) {
+      alert('Error al actualizar contraseña');
+    }
+  };
+
   const handleDeleteUser = async (id: string) => {
     if (!confirm('¿Estás seguro de eliminar este usuario?')) return;
     const res = await fetch('/api/users', {
@@ -86,6 +110,7 @@ export default function ConfigPage() {
     if (data.success) fetchUsers();
     else alert(data.error);
   };
+
 
   return (
     <div className="animate-in" style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '4rem' }}>
@@ -182,6 +207,20 @@ export default function ConfigPage() {
                         <td style={{ padding: '1rem' }}>
                           <div style={{ fontWeight: 600 }}>{u.full_name}</div>
                           <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>@{u.username}</div>
+                          {editingUser === u.id && (
+                            <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
+                              <input 
+                                type="password" 
+                                placeholder="Nueva clave" 
+                                className="select-input" 
+                                style={{ fontSize: '0.75rem', padding: '0.3rem' }} 
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                              />
+                              <button onClick={() => handlePasswordUpdate(u.id)} className="btn btn-primary" style={{ fontSize: '0.6rem', padding: '0.3rem 0.6rem' }}>✓</button>
+                              <button onClick={() => setEditingUser(null)} className="btn" style={{ fontSize: '0.6rem', padding: '0.3rem 0.6rem' }}>×</button>
+                            </div>
+                          )}
                         </td>
                         <td style={{ padding: '1rem' }}>
                           <span style={{ 
@@ -196,13 +235,23 @@ export default function ConfigPage() {
                           </span>
                         </td>
                         <td style={{ padding: '1rem', textAlign: 'right' }}>
-                          <button 
-                            onClick={() => handleDeleteUser(u.id)}
-                            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.1rem', opacity: u.id === '1' ? 0.2 : 1 }}
-                            disabled={u.id === '1'}
-                          >
-                            🗑️
-                          </button>
+                          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                            <button 
+                              onClick={() => setEditingUser(editingUser === u.id ? null : u.id)}
+                              style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '1.1rem' }}
+                              title="Cambiar Contraseña"
+                            >
+                              🔑
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteUser(u.id)}
+                              style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.1rem', opacity: u.id === '1' ? 0.2 : 1 }}
+                              disabled={u.id === '1'}
+                              title="Eliminar Usuario"
+                            >
+                              🗑️
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
