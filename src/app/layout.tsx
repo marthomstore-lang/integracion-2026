@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
+import LayoutWrapper from "@/components/LayoutWrapper";
 import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
@@ -23,12 +23,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
       </head>
       <body>
-        <div className="app-container">
-          <Sidebar />
-          <main className="main-content">
-            {children}
-          </main>
-        </div>
+        <LayoutWrapper>
+          {children}
+        </LayoutWrapper>
         <Analytics />
       </body>
     </html>
