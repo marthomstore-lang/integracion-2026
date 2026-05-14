@@ -28,7 +28,8 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
             curso: formData.estudianteCurso,
             profesor_jefe: formData.profesorJefe,
             fecha_diagnostico: formData.fechaDiagnostico,
-            diagnostico: formData.diagnostico
+            diagnostico: formData.diagnostico,
+            establecimiento: formData.estudianteEstablecimiento
           },
           data: {
             semester,

@@ -45,6 +45,11 @@ export async function POST(request: NextRequest) {
       }
 
       const birthDate = row['Fecha Nacimiento'] || row['Fecha Nac.'] || row['Fec. Nac.'];
+      const establecimiento = row['Establecimiento'] || row['Colegio'] || 'LICEO CAMPANARIO';
+      const apoderadoNombre = row['Nombre Apoderado'] || row['Apoderado'];
+      const apoderadoRut = row['RUT Apoderado'] || row['Run Apoderado'];
+      const relationship = row['Parentesco'] || row['Relación'];
+      const profesorJefe = row['Profesor Jefe'] || row['Profesor(a) Jefe'];
 
       studentsToUpsert.push({
         id: studentId,
@@ -52,14 +57,21 @@ export async function POST(request: NextRequest) {
         full_name: fullName,
         curso: curso,
         fecha_nacimiento: birthDate,
+        profesor_jefe: profesorJefe,
+        establecimiento: establecimiento,
+        apoderado_nombre: apoderadoNombre,
+        apoderado_rut: apoderadoRut,
+        apoderado_parentesco: relationship,
         status_informe: row['Estado Informe'] || 'PENDIENTE'
       });
 
       const diagnostico = row['Diagnóstico NEE'] || row['Diagnóstico'];
+      const fechaDiagnostico = row['Fecha Diagnóstico'] || row['Fecha Diag.'];
       if (diagnostico) {
         neeToUpsert.push({
           run: studentRun,
-          diagnostico: diagnostico
+          diagnostico: diagnostico,
+          fecha_diagnostico: fechaDiagnostico
         });
       }
       importedCount++;

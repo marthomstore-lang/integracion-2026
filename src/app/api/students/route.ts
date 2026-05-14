@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
   try {
-    const { run, full_name, curso, diagnostico } = await request.json();
+    const { run, full_name, curso, diagnostico, profesor_jefe, establecimiento, fecha_diagnostico } = await request.json();
 
     if (!run || !full_name) {
       return NextResponse.json({ error: 'RUT y Nombre son obligatorios' }, { status: 400 });
@@ -15,7 +15,15 @@ export async function POST(request: NextRequest) {
     // Insert student
     const { error: studentError } = await supabase
       .from('students')
-      .insert({ id: studentId, run, full_name, curso, status_informe: 'PENDIENTE' });
+      .insert({ 
+        id: studentId, 
+        run, 
+        full_name, 
+        curso, 
+        profesor_jefe,
+        establecimiento: establecimiento || 'LICEO CAMPANARIO',
+        status_informe: 'PENDIENTE' 
+      });
 
     if (studentError) throw studentError;
 
@@ -23,7 +31,7 @@ export async function POST(request: NextRequest) {
     if (diagnostico) {
       const { error: neeError } = await supabase
         .from('student_nee')
-        .insert({ run, diagnostico });
+        .insert({ run, diagnostico, fecha_diagnostico });
       if (neeError) throw neeError;
     }
 
@@ -49,7 +57,7 @@ export async function GET() {
     
     const { data: neeData, error: neeError } = await supabase
       .from('student_nee')
-      .select('run, diagnostico');
+      .select('run, diagnostico, fecha_diagnostico');
 
     if (neeError) throw neeError;
 
@@ -58,7 +66,8 @@ export async function GET() {
       const nee = neeData.find((n: any) => n.run === s.run);
       return {
         ...s,
-        nee: nee?.diagnostico || 'S/I'
+        nee: nee?.diagnostico || 'S/I',
+        fecha_diagnostico: nee?.fecha_diagnostico || ''
       };
     });
 
