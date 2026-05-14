@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import * as XLSX from 'xlsx';
 
 export default function ConfigPage() {
   const [isUploading, setIsUploading] = useState(false);
@@ -27,6 +28,7 @@ export default function ConfigPage() {
         setIsUploading(false);
         setUploadStatus('success');
         setRowCount(result.count);
+        fetchStudents();
       } else {
         throw new Error(result.error);
       }
@@ -58,6 +60,37 @@ export default function ConfigPage() {
     fetchUsers();
     fetchStudents();
   });
+
+  const handleDownloadDatabase = () => {
+    if (allStudents.length === 0) {
+      alert("No hay datos para descargar");
+      return;
+    }
+
+    // Map data to the expected Excel format
+    const exportData = allStudents.map(student => ({
+      'Nombre Completo': student.full_name,
+      'RUN': student.run,
+      'Curso': student.curso,
+      'Diagnóstico NEE': student.nee || 'S/I',
+      'Estado Informe': student.status_informe || 'PENDIENTE',
+      'Fecha Nacimiento': student.fecha_nacimiento || '',
+      'Nombre Social': student.nombre_social || '',
+      'Profesor Jefe': student.profesor_jefe || ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Estudiantes");
+    
+    // Auto-size columns
+    const maxWidths = Object.keys(exportData[0]).map(key => ({
+      wch: Math.max(key.length, ...exportData.map(row => (row[key as keyof typeof row]?.toString().length || 0))) + 2
+    }));
+    worksheet['!cols'] = maxWidths;
+
+    XLSX.writeFile(workbook, `Nomina_Estudiantes_LiceoPro_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
 
 
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -442,6 +475,22 @@ export default function ConfigPage() {
                     >
                       Seleccionar Archivo Excel
                     </label>
+                    
+                    <button 
+                      onClick={handleDownloadDatabase}
+                      className="btn"
+                      style={{ 
+                        padding: '1rem 2rem', 
+                        marginLeft: '1rem', 
+                        background: '#f8fafc', 
+                        border: '1px solid var(--border)',
+                        color: 'var(--text)',
+                        fontWeight: 600
+                      }}
+                    >
+                      📥 Descargar Nómina Actual
+                    </button>
+
                     <p style={{ fontSize: '0.875rem', opacity: 0.6, marginTop: '1rem' }}>
                       Asegúrate de que las columnas coincidan con los campos del informe ministerial.
                     </p>

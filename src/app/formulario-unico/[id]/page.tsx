@@ -135,7 +135,9 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
             full_name: formData.nombreIdentidad,
             curso: formData.cursoNivel,
             fecha_nacimiento: formData.fechaNacimiento,
-            nombre_social: formData.nombreSocial
+            nombre_social: formData.nombreSocial,
+            diagnostico: formData.diagnostico,
+            profesor_jefe: formData.profNombre // Usually the one filling it is the teacher
           },
           data: formData
         })

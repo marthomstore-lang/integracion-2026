@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
         profesor_jefe,
         nombre_social,
         telefono,
-        email
+        email,
+        status_informe: 'COMPLETE'
       }).eq('run', run);
 
       // Update NEE table

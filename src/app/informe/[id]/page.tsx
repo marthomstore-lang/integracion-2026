@@ -9,8 +9,6 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
   const [formData, setFormData] = useState<any>(null);
   const [semester, setSemester] = useState(1);
   const [subStep, setSubStep] = useState('Psicopedagógica');
-  const [showGrades, setShowGrades] = useState(false);
-  const [showGuardian, setShowGuardian] = useState(true);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +23,13 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
         body: JSON.stringify({
           type: 'familia',
           run: formData.estudianteRut,
+          student_data: {
+            full_name: formData.estudianteNombre,
+            curso: formData.estudianteCurso,
+            profesor_jefe: formData.profesorJefe,
+            fecha_diagnostico: formData.fechaDiagnostico,
+            diagnostico: formData.diagnostico
+          },
           data: {
             semester,
             folio: formData.folio,
@@ -44,16 +49,16 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
               relacion: formData.apoderadoRelacion
             },
             reportes_area: {
-              psicopedagogico: (document.getElementById('area-Psicopedagógica') as HTMLTextAreaElement)?.value || '',
-              psicologico: (document.getElementById('area-Psicológica') as HTMLTextAreaElement)?.value || '',
-              fonoaudiologico: (document.getElementById('area-Fonoaudiológica') as HTMLTextAreaElement)?.value || '',
-              kinesiologico: (document.getElementById('area-Kinesiológica') as HTMLTextAreaElement)?.value || ''
+              psicopedagogico: formData.reportePsicopedagogico,
+              psicologico: formData.reportePsicologico,
+              fonoaudiologico: formData.reporteFonoaudiologico,
+              kinesiologico: formData.reporteKinesiologico
             },
-            desempeno_acad: (document.getElementById('desempeno-acad') as HTMLTextAreaElement)?.value || '',
+            desempeno_acad: formData.desempenoAcademico,
             convivencia_salud: {
-              convivencia: (document.getElementById('conv-social') as HTMLTextAreaElement)?.value || '',
-              motivacion: (document.getElementById('motiv-escolar') as HTMLTextAreaElement)?.value || '',
-              salud: (document.getElementById('salud-est') as HTMLTextAreaElement)?.value || ''
+              convivencia: formData.convivenciaSocial,
+              motivacion: formData.motivacionEscolar,
+              salud: formData.saludFisicaMental
             }
           }
         })
@@ -62,7 +67,7 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
       const result = await response.json();
       if (result.success) {
         setLastSaved(new Date());
-        if (!isAuto) alert('Informe Guardado Correctamente en la Base de Datos');
+        if (!isAuto) alert('Informe Guardado Correctamente');
       }
     } catch (error) {
       console.error('Error saving:', error);
@@ -75,21 +80,19 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
     if (!formData) return;
     const timer = setTimeout(() => {
       handleSave(true);
-    }, 5000);
+    }, 10000); // 10 seconds for auto-save
     return () => clearTimeout(timer);
-  }, [step, semester]);
+  }, [formData, semester]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch Student
         const studentRes = await fetch(`/api/students/${params.id}`);
         const studentResult = await studentRes.json();
         
         if (studentResult.success) {
           const student = studentResult.data;
           
-          // Fetch existing Report
           const reportRes = await fetch(`/api/reports?run=${student.run}&type=familia&semester=${semester}`);
           const reportResult = await reportRes.json();
           const report = reportResult.data || {};
@@ -101,7 +104,7 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
             estudianteFechaNac: formatDate(student.fecha_nacimiento), 
             estudianteEdad: calculateAge(student.fecha_nacimiento), 
             estudianteCurso: student.curso,
-            estudianteEstablecimiento: 'LICEO CAMPANARIO',
+            estudianteEstablecimiento: report.estudianteEstablecimiento || 'LICEO CAMPANARIO',
             profesorJefe: report.profesor_jefe || student.profesor_jefe || '',
             fechaDiagnostico: report.fecha_diagnostico || student.fecha_diagnostico || '',
             profesionalNombre: report.profesional_data?.nombre || '',
@@ -113,7 +116,7 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
             apoderadoNombre: report.apoderado_data?.nombre || '',
             apoderadoRut: report.apoderado_data?.rut || '',
             apoderadoRelacion: report.apoderado_data?.relacion || 'Madre',
-            diagnostico: student.diagnostico,
+            diagnostico: student.diagnostico || '',
             reportePsicopedagogico: report.reportes_area?.psicopedagogico || '',
             reportePsicologico: report.reportes_area?.psicologico || '',
             reporteFonoaudiologico: report.reportes_area?.fonoaudiologico || '',
@@ -146,15 +149,15 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
     setAiLoading(true);
     setAiSuggestions([]);
 
-    const currentContent = (document.getElementById(fieldId) as HTMLTextAreaElement)?.value || '';
+    const currentContent = formData[fieldId] || '';
     
     const otherProfessionalNotes = {
-      psicopedagogico: (document.getElementById('area-Psicopedagógica') as HTMLTextAreaElement)?.value || '',
-      psicologico: (document.getElementById('area-Psicológica') as HTMLTextAreaElement)?.value || '',
-      fonoaudiologico: (document.getElementById('area-Fonoaudiológica') as HTMLTextAreaElement)?.value || '',
-      kinesiologico: (document.getElementById('area-Kinesiológica') as HTMLTextAreaElement)?.value || '',
-      academico: (document.getElementById('desempeno-acad') as HTMLTextAreaElement)?.value || '',
-      convivencia: (document.getElementById('conv-social') as HTMLTextAreaElement)?.value || ''
+      psicopedagogico: formData.reportePsicopedagogico,
+      psicologico: formData.reportePsicologico,
+      fonoaudiologico: formData.reporteFonoaudiologico,
+      kinesiologico: formData.reporteKinesiologico,
+      academico: formData.desempenoAcademico,
+      convivencia: formData.convivenciaSocial
     };
 
     try {
@@ -190,25 +193,21 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
   };
 
   const useSuggestion = (text: string) => {
-    const textarea = document.getElementById(activeAIField.id) as HTMLTextAreaElement;
-    if (textarea) {
-      textarea.value = text;
-    }
+    setFormData({ ...formData, [activeAIField.id]: text });
     setIsAIModalOpen(false);
   };
 
-  const nextStep = () => setStep(s => Math.min(s + 1, 4));
-  const prevStep = () => setStep(s => Math.max(s - 1, 1));
+  const nextStep = () => setStep(s => Math.min(s + 4, 4)); // Jump logic or manual
+  const setStepManual = (s: number) => setStep(s);
 
   if (error) return (
     <div style={{ padding: '3rem', textAlign: 'center' }}>
       <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
       <h3 style={{ color: '#ef4444' }}>{error}</h3>
       <p style={{ marginTop: '1rem', color: '#666' }}>
-        Parece que la base de datos temporal de Vercel se ha reiniciado.<br/>
-        Por favor, vuelve a subir la nómina en <strong>Configuración</strong> para continuar o solicita la migración a base de datos permanente.
+        No se pudo cargar la información del estudiante.
       </p>
-      <Link href="/config" className="btn btn-primary" style={{ marginTop: '2rem' }}>Re-subir Alumnos</Link>
+      <Link href="/informes" className="btn btn-primary" style={{ marginTop: '2rem' }}>Volver a la lista</Link>
     </div>
   );
 
@@ -216,7 +215,6 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
     <div style={{ padding: '4rem', textAlign: 'center' }}>
       <div className="spinner" style={{ margin: '0 auto 1.5rem' }}></div>
       <p style={{ fontWeight: 600, color: 'var(--primary)' }}>Cargando datos del estudiante...</p>
-      <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '1rem' }}>Verificando persistencia en servidor Vercel...</p>
     </div>
   );
 
@@ -239,7 +237,7 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
               <textarea 
                 value={aiInstruction}
                 onChange={(e) => setAiInstruction(e.target.value)}
-                placeholder="Ej: Menciona que ha mejorado en su lectura pero aún le cuesta concentrarse en tareas largas..."
+                placeholder="Ej: Menciona que ha mejorado en su lectura..."
                 style={{ width: '100%', minHeight: '60px', padding: '0.75rem', borderRadius: '8px', border: '1px solid #7dd3fc', fontSize: '0.9rem', marginBottom: '0.75rem' }}
               />
               <button 
@@ -255,7 +253,7 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
             {aiLoading ? (
               <div style={{ padding: '4rem', textAlign: 'center' }}>
                 <div className="animate-spin" style={{ width: '40px', height: '40px', border: '4px solid var(--primary-light)', borderTopColor: 'var(--primary)', borderRadius: '50%', margin: '0 auto 1rem' }}></div>
-                <p>Analizando coherencia y tus instrucciones...</p>
+                <p>Analizando coherencia...</p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -331,19 +329,19 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
 
       {/* Stepper Header */}
       <div className="stepper no-print" style={{ marginBottom: '3rem' }}>
-        <div className={`step ${step >= 1 ? 'active' : ''}`} onClick={() => setStep(1)} style={{ cursor: 'pointer' }}>
+        <div className={`step ${step >= 1 ? 'active' : ''}`} onClick={() => setStepManual(1)} style={{ cursor: 'pointer' }}>
           <div className="step-number">{step > 1 ? '✓' : '1'}</div>
           <span>Personales</span>
         </div>
-        <div className={`step ${step >= 2 ? 'active' : ''}`} onClick={() => setStep(2)} style={{ cursor: 'pointer' }}>
+        <div className={`step ${step >= 2 ? 'active' : ''}`} onClick={() => setStepManual(2)} style={{ cursor: 'pointer' }}>
           <div className="step-number">{step > 2 ? '✓' : '2'}</div>
           <span>Especialistas</span>
         </div>
-        <div className={`step ${step >= 3 ? 'active' : ''}`} onClick={() => setStep(3)} style={{ cursor: 'pointer' }}>
+        <div className={`step ${step >= 3 ? 'active' : ''}`} onClick={() => setStepManual(3)} style={{ cursor: 'pointer' }}>
           <div className="step-number">{step > 3 ? '✓' : '3'}</div>
           <span>Académico</span>
         </div>
-        <div className={`step ${step >= 4 ? 'active' : ''}`} onClick={() => setStep(4)} style={{ cursor: 'pointer' }}>
+        <div className={`step ${step >= 4 ? 'active' : ''}`} onClick={() => setStepManual(4)} style={{ cursor: 'pointer' }}>
           <div className="step-number">4</div>
           <span>Salud y Social</span>
         </div>
@@ -360,11 +358,11 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
                 </div>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group"><label>Nombre del Estudiante</label><input type="text" className="select-input" defaultValue={formData.estudianteNombre} /></div>
-                  <div className="form-group"><label>RUN</label><input type="text" className="select-input" defaultValue={formData.estudianteRut} /></div>
-                  <div className="form-group"><label>Fecha Informe</label><input type="date" className="select-input" defaultValue={formData.profesionalFechaInforme} /></div>
-                  <div className="form-group"><label>Curso</label><input type="text" className="select-input" defaultValue={formData.estudianteCurso} /></div>
-                  <div className="form-group"><label>Diagnóstico N.E.E.</label><input type="text" className="select-input" defaultValue={formData.diagnostico} /></div>
+                  <div className="form-group"><label>Nombre del Estudiante</label><input type="text" className="select-input" value={formData.estudianteNombre} onChange={e => setFormData({...formData, estudianteNombre: e.target.value})} /></div>
+                  <div className="form-group"><label>RUN</label><input type="text" className="select-input" value={formData.estudianteRut} readOnly /></div>
+                  <div className="form-group"><label>Fecha Informe</label><input type="date" className="select-input" value={formData.profesionalFechaInforme} onChange={e => setFormData({...formData, profesionalFechaInforme: e.target.value})} /></div>
+                  <div className="form-group"><label>Curso</label><input type="text" className="select-input" value={formData.estudianteCurso} onChange={e => setFormData({...formData, estudianteCurso: e.target.value})} /></div>
+                  <div className="form-group"><label>Diagnóstico N.E.E.</label><input type="text" className="select-input" value={formData.diagnostico} onChange={e => setFormData({...formData, diagnostico: e.target.value})} /></div>
                   <div className="form-group"><label>Establecimiento</label><input type="text" className="select-input" value={formData.estudianteEstablecimiento} onChange={(e) => setFormData({...formData, estudianteEstablecimiento: e.target.value})} /></div>
                 </div>
               </section>
@@ -374,10 +372,14 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
                   <h3 style={{ color: 'var(--primary)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', flex: 1 }}>II. Identificación del Apoderado</h3>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group"><label>Nombre Apoderado</label><input type="text" className="select-input" defaultValue={formData.apoderadoNombre} /></div>
-                  <div className="form-group"><label>RUT</label><input type="text" className="select-input" defaultValue={formData.apoderadoRut} /></div>
-                  <div className="form-group"><label>Parentesco</label><input type="text" className="select-input" defaultValue={formData.apoderadoRelacion} /></div>
+                  <div className="form-group"><label>Nombre Apoderado</label><input type="text" className="select-input" value={formData.apoderadoNombre} onChange={e => setFormData({...formData, apoderadoNombre: e.target.value})} /></div>
+                  <div className="form-group"><label>RUT</label><input type="text" className="select-input" value={formData.apoderadoRut} onChange={e => setFormData({...formData, apoderadoRut: e.target.value})} /></div>
+                  <div className="form-group"><label>Parentesco</label><input type="text" className="select-input" value={formData.apoderadoRelacion} onChange={e => setFormData({...formData, apoderadoRelacion: e.target.value})} /></div>
                 </div>
+              </section>
+              
+              <section>
+                <div className="form-group"><label>Profesor(a) Jefe</label><input type="text" className="select-input" value={formData.profesorJefe} onChange={e => setFormData({...formData, profesorJefe: e.target.value})} /></div>
               </section>
             </div>
           </div>
@@ -391,15 +393,37 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
                 ))}
               </div>
 
-              {['Psicopedagógica', 'Psicológica', 'Fonoaudiológica', 'Kinesiológica'].map(area => (
-                <section key={area} className={subStep === area ? 'active-area' : 'print-area'} style={{ padding: '1.5rem', background: '#fff', border: '1px solid var(--border)', borderRadius: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h4 style={{ color: 'var(--secondary)', textTransform: 'uppercase', fontSize: '0.875rem' }}>ÁREA {area.toUpperCase()}</h4>
-                    <button type="button" onClick={() => openAIModal(`Área ${area}`, `area-${area}`)} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
-                  </div>
-                  <textarea id={`area-${area}`} className="select-input" style={{ width: '100%', minHeight: '200px' }} placeholder={`Escriba el reporte...`} />
-                </section>
-              ))}
+              <section className={subStep === 'Psicopedagógica' ? 'active-area' : 'print-area'} style={{ padding: '1.5rem', background: '#fff', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h4 style={{ color: 'var(--secondary)', textTransform: 'uppercase', fontSize: '0.875rem' }}>ÁREA PSICOPEDAGÓGICA</h4>
+                  <button type="button" onClick={() => openAIModal('Área Psicopedagógica', 'reportePsicopedagogico')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
+                </div>
+                <textarea className="select-input" style={{ width: '100%', minHeight: '200px' }} value={formData.reportePsicopedagogico} onChange={e => setFormData({...formData, reportePsicopedagogico: e.target.value})} />
+              </section>
+              
+              <section className={subStep === 'Psicológica' ? 'active-area' : 'print-area'} style={{ padding: '1.5rem', background: '#fff', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h4 style={{ color: 'var(--secondary)', textTransform: 'uppercase', fontSize: '0.875rem' }}>ÁREA PSICOLÓGICA</h4>
+                  <button type="button" onClick={() => openAIModal('Área Psicológica', 'reportePsicologico')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
+                </div>
+                <textarea className="select-input" style={{ width: '100%', minHeight: '200px' }} value={formData.reportePsicologico} onChange={e => setFormData({...formData, reportePsicologico: e.target.value})} />
+              </section>
+              
+              <section className={subStep === 'Fonoaudiológica' ? 'active-area' : 'print-area'} style={{ padding: '1.5rem', background: '#fff', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h4 style={{ color: 'var(--secondary)', textTransform: 'uppercase', fontSize: '0.875rem' }}>ÁREA FONOAUDIOLÓGICA</h4>
+                  <button type="button" onClick={() => openAIModal('Área Fonoaudiológica', 'reporteFonoaudiologico')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
+                </div>
+                <textarea className="select-input" style={{ width: '100%', minHeight: '200px' }} value={formData.reporteFonoaudiologico} onChange={e => setFormData({...formData, reporteFonoaudiologico: e.target.value})} />
+              </section>
+              
+              <section className={subStep === 'Kinesiológica' ? 'active-area' : 'print-area'} style={{ padding: '1.5rem', background: '#fff', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h4 style={{ color: 'var(--secondary)', textTransform: 'uppercase', fontSize: '0.875rem' }}>ÁREA KINESIOLÓGICA</h4>
+                  <button type="button" onClick={() => openAIModal('Área Kinesiológica', 'reporteKinesiologico')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
+                </div>
+                <textarea className="select-input" style={{ width: '100%', minHeight: '200px' }} value={formData.reporteKinesiologico} onChange={e => setFormData({...formData, reporteKinesiologico: e.target.value})} />
+              </section>
             </div>
           </div>
 
@@ -409,9 +433,9 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
               <div className="form-group">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                   <label>Observaciones</label>
-                  <button type="button" onClick={() => openAIModal('Rendimiento Académico', 'desempeno-acad')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
+                  <button type="button" onClick={() => openAIModal('Rendimiento Académico', 'desempenoAcademico')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
                 </div>
-                <textarea id="desempeno-acad" className="select-input" style={{ width: '100%', minHeight: '250px' }} />
+                <textarea className="select-input" style={{ width: '100%', minHeight: '250px' }} value={formData.desempenoAcademico} onChange={e => setFormData({...formData, desempenhoAcademico: e.target.value})} />
               </div>
             </section>
           </div>
@@ -422,21 +446,37 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
               <section className="card shadow-sm" style={{ padding: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                   <h4 style={{ margin: 0, color: 'var(--secondary)', fontSize: '0.9rem' }}>PARTICIPACIÓN SOCIAL</h4>
-                  <button type="button" onClick={() => openAIModal('Convivencia Social', 'conv-social')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
+                  <button type="button" onClick={() => openAIModal('Convivencia Social', 'convivenciaSocial')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
                 </div>
-                <textarea id="conv-social" className="select-input" style={{ width: '100%', minHeight: '120px' }} />
+                <textarea className="select-input" style={{ width: '100%', minHeight: '120px' }} value={formData.convivenciaSocial} onChange={e => setFormData({...formData, convivenciaSocial: e.target.value})} />
+              </section>
+              
+              <section className="card shadow-sm" style={{ padding: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                  <h4 style={{ margin: 0, color: 'var(--secondary)', fontSize: '0.9rem' }}>MOTIVACIÓN ESCOLAR</h4>
+                  <button type="button" onClick={() => openAIModal('Motivación Escolar', 'motivacionEscolar')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
+                </div>
+                <textarea className="select-input" style={{ width: '100%', minHeight: '120px' }} value={formData.motivacionEscolar} onChange={e => setFormData({...formData, motivacionEscolar: e.target.value})} />
+              </section>
+              
+              <section className="card shadow-sm" style={{ padding: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                  <h4 style={{ margin: 0, color: 'var(--secondary)', fontSize: '0.9rem' }}>SALUD FÍSICA Y MENTAL</h4>
+                  <button type="button" onClick={() => openAIModal('Salud', 'saludFisicaMental')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
+                </div>
+                <textarea className="select-input" style={{ width: '100%', minHeight: '120px' }} value={formData.saludFisicaMental} onChange={e => setFormData({...formData, saludFisicaMental: e.target.value})} />
               </section>
             </div>
           </div>
         </div>
 
         <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }} className="no-print">
-          <button onClick={prevStep} disabled={step === 1} className="btn" style={{ background: '#f1f5f9', opacity: step === 1 ? 0.5 : 1 }}>← Anterior</button>
+          <button onClick={() => setStep(s => Math.max(s - 1, 1))} disabled={step === 1} className="btn" style={{ background: '#f1f5f9', opacity: step === 1 ? 0.5 : 1 }}>← Anterior</button>
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button className="btn" style={{ background: 'var(--primary)', color: 'white', fontWeight: 800, padding: '0.75rem 2rem', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)' }} onClick={() => handleSave(false)}>
               {saving ? 'Guardando...' : '💾 GUARDAR DATOS'}
             </button>
-            {step < 4 ? <button onClick={nextStep} className="btn btn-primary">Siguiente →</button> : null}
+            {step < 4 ? <button onClick={() => setStep(s => Math.min(s + 1, 4))} className="btn btn-primary">Siguiente →</button> : null}
           </div>
         </div>
 
@@ -464,8 +504,6 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
             transition: 'transform 0.2s'
           }}
           title="Guardar Información"
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
         >
           {saving ? '⌛' : '💾'}
         </button>
