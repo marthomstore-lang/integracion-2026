@@ -2,6 +2,7 @@
 import { useState, use, useEffect } from 'react';
 import Link from 'next/link';
 import { calculateAge } from '@/lib/dateUtils';
+import Toast from '@/components/Toast';
 
 export default function FormularioUnico({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = use(paramsPromise);
@@ -11,6 +12,11 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [activeAIField, setActiveAIField] = useState({ label: '', id: '' });
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ message, type });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -145,12 +151,12 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
 
       const result = await response.json();
       if (result.success) {
-        alert('Formulario Guardado Correctamente');
+        showToast('Formulario Guardado Correctamente', 'success');
       } else {
         throw new Error(result.error);
       }
     } catch (error: any) {
-      alert('Error al guardar: ' + error.message);
+      showToast('Error al guardar: ' + error.message, 'error');
     } finally {
       setSaving(false);
     }
@@ -396,6 +402,14 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
       <button onClick={handleSave} className="floating-save no-print" title="Guardar cambios">
         {saving ? '⌛' : '💾'}
       </button>
+
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast(null)} 
+        />
+      )}
 
       <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');

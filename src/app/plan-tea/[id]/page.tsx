@@ -2,6 +2,7 @@
 import { useState, use, useEffect } from 'react';
 import Link from 'next/link';
 import { calculateAge } from '@/lib/dateUtils';
+import Toast from '@/components/Toast';
 
 export default function PlanTeaForm({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = use(paramsPromise);
@@ -13,6 +14,11 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
   const [aiLoading, setAiLoading] = useState(false);
   const [activeAIField, setActiveAIField] = useState({ label: '', id: '' });
   const [aiInstruction, setAiInstruction] = useState('');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ message, type });
+  };
 
   // Initial Fetch
   useEffect(() => {
@@ -127,13 +133,18 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
     try {
       const res = await fetch('/api/uploads', { method: 'POST', body: fd });
       if (res.ok) {
-        alert('Documento subido con éxito');
+        showToast('Documento subido con éxito', 'success');
         // Refresh docs
         const docsRes = await fetch(`/api/uploads?run=${formData.estudianteRut}`);
         const docsData = await docsRes.json();
         if (docsData.success) setDocuments(docsData.data);
+      } else {
+        showToast('Error al subir documento', 'error');
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error(err); 
+      showToast('Error al conectar con el servidor', 'error');
+    }
   };
 
   const handleSave = async () => {
@@ -167,8 +178,15 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
           }
         })
       });
-      if (response.ok) alert('Plan PAEC actualizado con éxito');
-    } catch (e) { console.error(e); }
+      if (response.ok) {
+        showToast('Plan PAEC actualizado con éxito', 'success');
+      } else {
+        showToast('Error al actualizar el Plan PAEC', 'error');
+      }
+    } catch (e) { 
+      console.error(e); 
+      showToast('Error al conectar con el servidor', 'error');
+    }
     finally { setSaving(false); }
   };
 
@@ -641,6 +659,13 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
           .paec-table td { border-bottom: 1px solid #000 !important; }
         }
       ` }} />
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast(null)} 
+        />
+      )}
     </div>
   );
 }

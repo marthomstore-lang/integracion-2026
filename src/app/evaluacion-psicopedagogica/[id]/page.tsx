@@ -2,6 +2,7 @@
 import { useState, use, useEffect } from 'react';
 import Link from 'next/link';
 import { calculateAge, formatDate } from '@/lib/dateUtils';
+import Toast from '@/components/Toast';
 
 const PEDAGOGICAL_ITEMS = [
   "Demuestra comprensión de instrucciones orales, escritas o en lengua de señas, respondiendo a ellas de acuerdo con sus posibilidades comunicativas y utilizando los apoyos necesarios.",
@@ -37,6 +38,11 @@ export default function PsicopedagogicoForm({ params: paramsPromise }: { params:
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ message, type });
+  };
 
   // AI assistant state
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
@@ -107,7 +113,7 @@ export default function PsicopedagogicoForm({ params: paramsPromise }: { params:
       const result = await response.json();
       if (result.success) {
         setLastSaved(new Date());
-        if (!isAuto) alert('Informe Guardado Correctamente');
+        if (!isAuto) showToast('Informe Guardado Correctamente', 'success');
       } else {
         throw new Error(result.error);
       }
@@ -243,7 +249,7 @@ export default function PsicopedagogicoForm({ params: paramsPromise }: { params:
         setAiSuggestions(result.suggestions);
       } else {
         setAiSuggestions([]);
-        alert('Error: No se pudieron generar sugerencias. Intente nuevamente.');
+        showToast('Error: No se pudieron generar sugerencias. Intente nuevamente.', 'error');
       }
     } catch (error) {
       console.error(error);
@@ -1040,8 +1046,14 @@ export default function PsicopedagogicoForm({ params: paramsPromise }: { params:
             background: black;
             border-radius: 50%;
           }
-        }
       ` }} />
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast(null)} 
+        />
+      )}
     </div>
   );
 }

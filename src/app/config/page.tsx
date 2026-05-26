@@ -1,12 +1,18 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import * as XLSX from 'xlsx';
+import Toast from '@/components/Toast';
 
 export default function ConfigPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<null | 'success' | 'error'>(null);
   const [rowCount, setRowCount] = useState(0);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ message, type });
+  };
 
   const handleExcelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return;
@@ -56,14 +62,14 @@ export default function ConfigPage() {
     if (data.success) setAllStudents(data.data);
   };
 
-  useState(() => {
+  useEffect(() => {
     fetchUsers();
     fetchStudents();
-  });
+  }, []);
 
   const handleDownloadDatabase = () => {
     if (allStudents.length === 0) {
-      alert("No hay datos para descargar");
+      showToast("No hay datos para descargar", "info");
       return;
     }
 
@@ -104,14 +110,14 @@ export default function ConfigPage() {
       });
       const data = await res.json();
       if (data.success) {
-        alert('Usuario creado');
+        showToast('Usuario creado con éxito', 'success');
         setNewUser({ username: '', password: '', full_name: '', role: 'docente' });
         fetchUsers();
       } else {
-        alert(data.error);
+        showToast(data.error, 'error');
       }
     } catch (err) {
-      alert('Error al crear usuario');
+      showToast('Error al crear usuario', 'error');
     } finally {
       setUserLoading(false);
     }
@@ -130,14 +136,14 @@ export default function ConfigPage() {
       });
       const data = await res.json();
       if (data.success) {
-        alert('Contraseña actualizada');
+        showToast('Contraseña actualizada con éxito', 'success');
         setEditingUser(null);
         setNewPassword('');
       } else {
-        alert(data.error);
+        showToast(data.error, 'error');
       }
     } catch (err) {
-      alert('Error al actualizar contraseña');
+      showToast('Error al actualizar contraseña', 'error');
     }
   };
 
@@ -149,8 +155,12 @@ export default function ConfigPage() {
       body: JSON.stringify({ id }),
     });
     const data = await res.json();
-    if (data.success) fetchUsers();
-    else alert(data.error);
+    if (data.success) {
+      showToast('Usuario eliminado con éxito', 'success');
+      fetchUsers();
+    } else {
+      showToast(data.error, 'error');
+    }
   };
 
 
@@ -335,14 +345,14 @@ export default function ConfigPage() {
                 });
                 const result = await res.json();
                 if (result.success) {
-                  alert('Estudiante agregado con éxito');
+                  showToast('Estudiante agregado con éxito', 'success');
                   target.reset();
                   fetchStudents();
                 } else {
-                  alert(result.error);
+                  showToast(result.error, 'error');
                 }
               } catch (err) {
-                alert('Error al conectar con el servidor');
+                showToast('Error al conectar con el servidor', 'error');
               }
             }}
             style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.25rem' }}
@@ -373,7 +383,12 @@ export default function ConfigPage() {
               onClick={async () => {
                 if(confirm('¿BORRAR TODOS LOS ESTUDIANTES? Esta acción no se puede deshacer.')) {
                   const res = await fetch('/api/students', { method: 'DELETE', body: JSON.stringify({ all: true }) });
-                  if ((await res.json()).success) fetchStudents();
+                  if ((await res.json()).success) {
+                    showToast('Base de datos de estudiantes limpiada', 'success');
+                    fetchStudents();
+                  } else {
+                    showToast('Error al limpiar base de datos', 'error');
+                  }
                 }
               }}
               className="btn" 
@@ -408,7 +423,12 @@ export default function ConfigPage() {
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ id: s.id }) 
                             });
-                            if ((await res.json()).success) fetchStudents();
+                            if ((await res.json()).success) {
+                              showToast('Estudiante eliminado', 'success');
+                              fetchStudents();
+                            } else {
+                              showToast('Error al eliminar estudiante', 'error');
+                            }
                           }
                         }}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}
@@ -555,6 +575,13 @@ export default function ConfigPage() {
           to { transform: rotate(360deg); }
         }
       `}</style>
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast(null)} 
+        />
+      )}
     </div>
   );
 }
