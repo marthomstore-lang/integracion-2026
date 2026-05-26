@@ -3,6 +3,7 @@ import { useState, use, useEffect } from 'react';
 import Link from 'next/link';
 import { calculateAge } from '@/lib/dateUtils';
 import Toast from '@/components/Toast';
+import PrintSettings from '@/components/PrintSettings';
 
 export default function FormularioUnico({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = use(paramsPromise);
@@ -403,6 +404,7 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
         {saving ? '⌛' : '💾'}
       </button>
 
+      <PrintSettings />
       {toast && (
         <Toast 
           message={toast.message} 

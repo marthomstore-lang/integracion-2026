@@ -3,6 +3,7 @@ import { useState, use, useEffect } from 'react';
 import Link from 'next/link';
 import { calculateAge, formatDate } from '@/lib/dateUtils';
 import Toast from '@/components/Toast';
+import PrintSettings from '@/components/PrintSettings';
 
 const PEDAGOGICAL_ITEMS = [
   "Demuestra comprensión de instrucciones orales, escritas o en lengua de señas, respondiendo a ellas de acuerdo con sus posibilidades comunicativas y utilizando los apoyos necesarios.",
@@ -1048,6 +1049,7 @@ export default function PsicopedagogicoForm({ params: paramsPromise }: { params:
             border-radius: 50%;
           }
       ` }} />
+      <PrintSettings />
       {toast && (
         <Toast 
           message={toast.message} 

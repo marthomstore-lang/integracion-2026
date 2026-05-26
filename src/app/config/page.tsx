@@ -17,6 +17,67 @@ export default function ConfigPage() {
   const [courseTeachers, setCourseTeachers] = useState<Record<string, string>>({});
   const [ctLoading, setCtLoading] = useState(false);
 
+  const [printSettings, setPrintSettings] = useState({
+    margin_top: 15,
+    margin_bottom: 15,
+    margin_left: 15,
+    margin_right: 15,
+    font_size_print: '10pt',
+    line_height_print: 1.4,
+    force_page_breaks: true
+  });
+  const [psLoading, setPsLoading] = useState(false);
+
+  const fetchPrintSettings = async () => {
+    try {
+      const res = await fetch('/api/reports?run=SYSTEM&type=print_settings');
+      const data = await res.json();
+      if (data.success && data.data && data.data.mapping) {
+        const mapping = data.data.mapping;
+        setPrintSettings({
+          margin_top: Number(mapping.margin_top) ?? 15,
+          margin_bottom: Number(mapping.margin_bottom) ?? 15,
+          margin_left: Number(mapping.margin_left) ?? 15,
+          margin_right: Number(mapping.margin_right) ?? 15,
+          font_size_print: mapping.font_size_print || '10pt',
+          line_height_print: Number(mapping.line_height_print) ?? 1.4,
+          force_page_breaks: mapping.force_page_breaks !== false
+        });
+      }
+    } catch (e) {
+      console.error('Error fetching print settings:', e);
+    }
+  };
+
+  const handleSavePrintSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPsLoading(true);
+    try {
+      const res = await fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'print_settings',
+          run: 'SYSTEM',
+          data: {
+            semester: 1,
+            mapping: printSettings
+          }
+        })
+      });
+      const result = await res.json();
+      if (result.success) {
+        showToast('Ajustes de impresión guardados con éxito', 'success');
+      } else {
+        showToast(result.error || 'Error al guardar configuración', 'error');
+      }
+    } catch (e) {
+      showToast('Error al guardar ajustes de impresión', 'error');
+    } finally {
+      setPsLoading(false);
+    }
+  };
+
   const fetchCourseTeachers = async () => {
     try {
       const res = await fetch('/api/reports?run=SYSTEM&type=course_teachers');
@@ -111,6 +172,7 @@ export default function ConfigPage() {
     fetchUsers();
     fetchStudents();
     fetchCourseTeachers();
+    fetchPrintSettings();
   }, []);
 
   const handleDownloadDatabase = () => {
@@ -690,6 +752,120 @@ export default function ConfigPage() {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* Print Settings Section */}
+        <section className="card shadow-lg" style={{ border: '1px solid rgba(14, 165, 233, 0.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+            <div style={{ fontSize: '2rem', background: 'rgba(14, 165, 233, 0.15)', padding: '0.75rem', borderRadius: '16px' }}>🖨️</div>
+            <div>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Ajustes de Impresión de Informes</h2>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Configura los márgenes, fuentes e interlineado generales para la descarga en PDF o impresión física</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSavePrintSettings} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+              <div className="form-group">
+                <label style={{ fontSize: '0.65rem', fontWeight: 700, display: 'block', marginBottom: '0.25rem' }}>Margen Superior (mm)</label>
+                <input 
+                  type="number" 
+                  className="select-input" 
+                  min="0" 
+                  max="50" 
+                  value={printSettings.margin_top}
+                  onChange={(e) => setPrintSettings({ ...printSettings, margin_top: parseInt(e.target.value) || 0 })}
+                  required 
+                />
+              </div>
+              <div className="form-group">
+                <label style={{ fontSize: '0.65rem', fontWeight: 700, display: 'block', marginBottom: '0.25rem' }}>Margen Inferior (mm)</label>
+                <input 
+                  type="number" 
+                  className="select-input" 
+                  min="0" 
+                  max="50" 
+                  value={printSettings.margin_bottom}
+                  onChange={(e) => setPrintSettings({ ...printSettings, margin_bottom: parseInt(e.target.value) || 0 })}
+                  required 
+                />
+              </div>
+              <div className="form-group">
+                <label style={{ fontSize: '0.65rem', fontWeight: 700, display: 'block', marginBottom: '0.25rem' }}>Margen Izquierdo (mm)</label>
+                <input 
+                  type="number" 
+                  className="select-input" 
+                  min="0" 
+                  max="50" 
+                  value={printSettings.margin_left}
+                  onChange={(e) => setPrintSettings({ ...printSettings, margin_left: parseInt(e.target.value) || 0 })}
+                  required 
+                />
+              </div>
+              <div className="form-group">
+                <label style={{ fontSize: '0.65rem', fontWeight: 700, display: 'block', marginBottom: '0.25rem' }}>Margen Derecho (mm)</label>
+                <input 
+                  type="number" 
+                  className="select-input" 
+                  min="0" 
+                  max="50" 
+                  value={printSettings.margin_right}
+                  onChange={(e) => setPrintSettings({ ...printSettings, margin_right: parseInt(e.target.value) || 0 })}
+                  required 
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <div className="form-group">
+                <label style={{ fontSize: '0.65rem', fontWeight: 700, display: 'block', marginBottom: '0.25rem' }}>Tamaño de Fuente</label>
+                <select 
+                  className="select-input"
+                  style={{ width: '100%' }}
+                  value={printSettings.font_size_print}
+                  onChange={(e) => setPrintSettings({ ...printSettings, font_size_print: e.target.value })}
+                >
+                  <option value="9pt">Muy Pequeño (9pt)</option>
+                  <option value="10pt">Normal (10pt)</option>
+                  <option value="11pt">Grande (11pt)</option>
+                  <option value="12pt">Muy Grande (12pt)</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label style={{ fontSize: '0.65rem', fontWeight: 700, display: 'block', marginBottom: '0.25rem' }}>Interlineado / Espaciado</label>
+                <select 
+                  className="select-input"
+                  style={{ width: '100%' }}
+                  value={printSettings.line_height_print}
+                  onChange={(e) => setPrintSettings({ ...printSettings, line_height_print: parseFloat(e.target.value) || 1.4 })}
+                >
+                  <option value="1.15">Muy Compacto (1.15)</option>
+                  <option value="1.3">Compacto (1.3)</option>
+                  <option value="1.45">Normal (1.45)</option>
+                  <option value="1.6">Espacioso (1.6)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', marginTop: '0.5rem' }}>
+                <input 
+                  type="checkbox" 
+                  style={{ width: '18px', height: '18px' }} 
+                  checked={printSettings.force_page_breaks}
+                  onChange={(e) => setPrintSettings({ ...printSettings, force_page_breaks: e.target.checked })}
+                />
+                <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Forzar saltos de página rígidos (Mantiene estructura oficial)</span>
+              </label>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '1.75rem', marginTop: '0.25rem' }}>
+                Si se desactiva, el contenido fluirá dinámicamente según el espacio disponible de la impresora, eliminando hojas semi-vacías en descripciones cortas.
+              </p>
+            </div>
+
+            <button disabled={psLoading} className="btn btn-primary" style={{ padding: '1rem', width: '100%', marginTop: '0.5rem', background: 'var(--primary)' }}>
+              {psLoading ? 'Guardando Ajustes...' : '💾 Guardar Ajustes de Impresión'}
+            </button>
+          </form>
         </section>
 
         {/* Database Schema Preview */}

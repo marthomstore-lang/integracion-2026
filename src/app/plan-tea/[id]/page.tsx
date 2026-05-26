@@ -3,6 +3,7 @@ import { useState, use, useEffect } from 'react';
 import Link from 'next/link';
 import { calculateAge } from '@/lib/dateUtils';
 import Toast from '@/components/Toast';
+import PrintSettings from '@/components/PrintSettings';
 
 export default function PlanTeaForm({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = use(paramsPromise);
@@ -659,6 +660,7 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
           .paec-table td { border-bottom: 1px solid #000 !important; }
         }
       ` }} />
+      <PrintSettings />
       {toast && (
         <Toast 
           message={toast.message} 
