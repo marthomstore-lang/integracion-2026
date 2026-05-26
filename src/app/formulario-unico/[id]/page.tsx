@@ -43,7 +43,7 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
             establecimiento: report.establecimiento || 'LICEO CAMPANARIO',
 
             // Profesional
-            profNombre: report.profNombre || '',
+            profNombre: student.profesor_jefe || report.profNombre || '',
             profRut: report.profRut || '',
             profSocial: report.profSocial || '',
             profRol: report.profRol || '',
@@ -67,7 +67,7 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
             motivo: report.motivo || 'Ingreso',
             instrumentos: report.instrumentos || '',
             fechaEvaluacion: report.fechaEvaluacion || '',
-            diagnostico: report.diagnostico || student.diagnostico || '',
+            diagnostico: student.diagnostico || report.diagnostico || '',
 
             // Ámbitos
             pedagogicoFortalezas: report.pedagogicoFortalezas || '',

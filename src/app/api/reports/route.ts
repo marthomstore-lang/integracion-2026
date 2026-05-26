@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     // Sync student data if provided
     if (student_data) {
-      const { full_name, curso, fecha_nacimiento, diagnostico, profesor_jefe, nombre_social, telefono, email } = student_data;
+      const { full_name, curso, fecha_nacimiento, diagnostico, fecha_diagnostico, profesor_jefe, nombre_social, telefono, email } = student_data;
       
       // Update main student table
       await supabase.from('students').update({
@@ -27,11 +27,12 @@ export async function POST(request: NextRequest) {
       }).eq('run', run);
 
       // Update NEE table
-      if (diagnostico) {
-        await supabase.from('student_nee').upsert({
-          run,
-          diagnostico
-        });
+      if (diagnostico || fecha_diagnostico) {
+        const neeUpdate: any = { run };
+        if (diagnostico) neeUpdate.diagnostico = diagnostico;
+        if (fecha_diagnostico) neeUpdate.fecha_diagnostico = fecha_diagnostico;
+        
+        await supabase.from('student_nee').upsert(neeUpdate);
       }
     }
 

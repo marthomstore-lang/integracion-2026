@@ -65,7 +65,8 @@ export default function PsicopedagogicoForm({ params: paramsPromise }: { params:
             full_name: formData.estudianteNombre,
             nombre_social: formData.estudianteNombreSocial,
             curso: formData.estudianteCurso,
-            diagnostico: formData.diagnostico
+            diagnostico: formData.diagnostico,
+            fecha_diagnostico: formData.fechaEmisionDiagnostico
           },
           data: {
             semester,
@@ -154,7 +155,7 @@ export default function PsicopedagogicoForm({ params: paramsPromise }: { params:
           setFormData({
             folio: report.folio || `PP-2026-${params.id.slice(0, 4)}`,
             estudianteNombre: student.full_name,
-            estudianteNombreSocial: report.estudianteNombreSocial || student.nombre_social || '',
+            estudianteNombreSocial: student.nombre_social || report.estudianteNombreSocial || '',
             estudianteRut: student.run,
             estudianteFechaNac: formatDate(student.fecha_nacimiento), 
             estudianteEdad: calculateAge(student.fecha_nacimiento), 
@@ -162,7 +163,7 @@ export default function PsicopedagogicoForm({ params: paramsPromise }: { params:
             estudianteEstablecimiento: report.estudianteEstablecimiento || 'LICEO CAMPANARIO',
             fechaEvaluacion: report.fechaEvaluacion || new Date().toISOString().split('T')[0],
             diagnostico: student.diagnostico || '',
-            fechaEmisionDiagnostico: report.fechaEmisionDiagnostico || student.fecha_diagnostico || '',
+            fechaEmisionDiagnostico: student.fecha_diagnostico || report.fechaEmisionDiagnostico || '',
             
             motivoEvaluacion: report.motivoEvaluacion || 'reevaluacion', // 'ingreso' | 'reevaluacion' | 'otro'
             motivoOtrosDetalle: report.motivoOtrosDetalle || '',
