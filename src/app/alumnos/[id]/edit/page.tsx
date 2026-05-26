@@ -1,12 +1,15 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Toast from '@/components/Toast';
 
-export default function EditStudentPage({ params }: { params: { id: string } }) {
+export default function EditStudentPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
+  const params = use(paramsPromise);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [formData, setFormData] = useState({
     full_name: '',
     run: '',
@@ -15,6 +18,10 @@ export default function EditStudentPage({ params }: { params: { id: string } }) 
     fecha_nacimiento: '',
     profesor_jefe: ''
   });
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ message, type });
+  };
 
   useEffect(() => {
     const fetchStudent = async () => {
@@ -30,9 +37,12 @@ export default function EditStudentPage({ params }: { params: { id: string } }) 
             fecha_nacimiento: result.data.fecha_nacimiento || '',
             profesor_jefe: result.data.profesor_jefe || ''
           });
+        } else {
+          showToast(result.error || 'No se pudo cargar la información del estudiante', 'error');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching student:', error);
+        showToast('Error de red al cargar la información del estudiante', 'error');
       } finally {
         setLoading(false);
       }
@@ -54,11 +64,17 @@ export default function EditStudentPage({ params }: { params: { id: string } }) 
       });
       const result = await response.json();
       if (result.success) {
-        router.push('/alumnos');
-        router.refresh();
+        showToast('Estudiante actualizado correctamente', 'success');
+        setTimeout(() => {
+          router.push('/alumnos');
+          router.refresh();
+        }, 1500);
+      } else {
+        showToast(result.error || 'Error al actualizar el estudiante', 'error');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating student:', error);
+      showToast('Error de red al actualizar el estudiante', 'error');
     } finally {
       setSaving(false);
     }
@@ -172,6 +188,14 @@ export default function EditStudentPage({ params }: { params: { id: string } }) 
           </button>
         </div>
       </form>
+
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast(null)} 
+        />
+      )}
 
       <style jsx>{`
         .spinner {
