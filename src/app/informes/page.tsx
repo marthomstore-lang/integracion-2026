@@ -18,7 +18,8 @@ function InformesContent() {
   // Derive filterType directly from URL to ensure instant updates
   const filterType = typeParam === 'tea' ? 'PAEC' : 
                     typeParam === 'familia' ? 'Familia' : 
-                    typeParam === 'unico' ? 'Único' : 'Todos';
+                    typeParam === 'unico' ? 'Único' : 
+                    typeParam === 'psicopedagogico' ? 'Psicopedagógico' : 'Todos';
 
   useEffect(() => {
     if (runParam) setSearchQuery(runParam);
@@ -58,12 +59,12 @@ function InformesContent() {
       <header style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>
-            {filterType === 'Todos' ? '📄 Gestión de Informes' : filterType === 'PAEC' ? '📄 Plan de Manejo Individual (PAEC)' : `📄 Informe ${filterType}`}
+            {filterType === 'Todos' ? '📄 Gestión de Informes' : filterType === 'PAEC' ? '📄 Plan de Manejo Individual (PAEC)' : filterType === 'Psicopedagógico' ? '📄 Informe de Evaluación Psicopedagógica (NEE)' : `📄 Informe ${filterType}`}
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '1.125rem' }}>
             {filterType === 'Todos' 
               ? 'Administración y seguimiento de documentos técnicos PIE.' 
-              : `Listado de estudiantes para generar o editar el ${filterType === 'PAEC' ? 'Plan de Manejo Individual' : `Informe de ${filterType}`}.`}
+              : `Listado de estudiantes para generar o editar el ${filterType === 'PAEC' ? 'Plan de Manejo Individual' : filterType === 'Psicopedagógico' ? 'Informe de Evaluación Psicopedagógica' : `Informe de ${filterType}`}.`}
           </p>
         </div>
         {filterType !== 'Todos' && (
@@ -158,7 +159,7 @@ function InformesContent() {
                     {(student.status_informe || student.estado) === 'COMPLETE' ? '● COMPLETO' : '○ PENDIENTE'}
                   </div>
                 </td>
-                <td style={{ width: '320px' }}>
+                <td style={{ width: '420px' }}>
                   <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
                     {(filterType === 'Todos' || filterType === 'Familia') && (
                       <Link 
@@ -210,6 +211,24 @@ function InformesContent() {
                         }}
                       >
                         {filterType === 'Único' ? '+ AGREGAR FORMULARIO PIE' : 'SÍNTESIS'}
+                      </Link>
+                    )}
+
+                    {(filterType === 'Todos' || filterType === 'Psicopedagógico') && (
+                      <Link 
+                        href={`/evaluacion-psicopedagogica/${student.id}`} 
+                        className="btn" 
+                        style={{ 
+                          padding: '0.35rem 0.6rem', 
+                          fontSize: '0.7rem', 
+                          background: filterType === 'Psicopedagógico' ? '#0891b2' : '#ecfeff', 
+                          color: filterType === 'Psicopedagógico' ? 'white' : '#0891b2',
+                          fontWeight: 700,
+                          border: '1px solid #cffafe',
+                          flex: filterType === 'Psicopedagógico' ? 1 : 'none'
+                        }}
+                      >
+                        {filterType === 'Psicopedagógico' ? '+ AGREGAR INFORME PSICOPEDAGÓGICO' : 'PSICOPED.'}
                       </Link>
                     )}
                   </div>

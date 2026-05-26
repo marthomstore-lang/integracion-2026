@@ -13,6 +13,7 @@ function ReportsMenu({ pathname, isCollapsed }: { pathname: string, isCollapsed:
     if (pathname?.includes('/informe') || 
         pathname?.includes('/plan-tea') || 
         pathname?.includes('/formulario-unico') ||
+        pathname?.includes('/evaluacion-psicopedagogica') ||
         pathname === '/informes') {
       setReportsOpen(true);
     }
@@ -22,6 +23,7 @@ function ReportsMenu({ pathname, isCollapsed }: { pathname: string, isCollapsed:
     const isAnyActive = pathname?.includes('/informe') || 
                         pathname?.includes('/plan-tea') || 
                         pathname?.includes('/formulario-unico') ||
+                        pathname?.includes('/evaluacion-psicopedagogica') ||
                         pathname === '/informes';
     return (
       <Link href="/informes" className="sidebar-link" style={{
@@ -87,6 +89,11 @@ function ReportsMenu({ pathname, isCollapsed }: { pathname: string, isCollapsed:
             label="Formulario Único PIE" 
             active={(pathname === '/informes' && type === 'unico') || pathname?.includes('/formulario-unico/')} 
           />
+          <SidebarSubLink 
+            href="/informes?type=psicopedagogico" 
+            label="Informe Psicopedagógico" 
+            active={(pathname === '/informes' && type === 'psicopedagogico') || pathname?.includes('/evaluacion-psicopedagogica/')} 
+          />
         </div>
       )}
     </div>
@@ -96,6 +103,8 @@ function ReportsMenu({ pathname, isCollapsed }: { pathname: string, isCollapsed:
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const isLoginPage = pathname === '/login' || (typeof window !== 'undefined' && window.location.pathname === '/login');
+  console.log(`Sidebar render: pathname=${pathname} isLoginPage=${isLoginPage} windowPath=${typeof window !== 'undefined' ? window.location.pathname : 'server'}`);
   const [user, setUser] = useState<{ name: string, role: string } | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -113,10 +122,10 @@ export default function Sidebar() {
 
     if (cookies.user_role) {
       setUser({ name: decodeURIComponent(cookies.user_name || 'Usuario'), role: cookies.user_role });
-    } else if (pathname !== '/login') {
+    } else if (!isLoginPage) {
       router.push('/login');
     }
-  }, [pathname, router]);
+  }, [isLoginPage, router]);
 
   useEffect(() => {
     const container = document.querySelector('.app-container');
@@ -131,7 +140,7 @@ export default function Sidebar() {
     router.push('/login');
   };
 
-  if (pathname === '/login') return null;
+  if (isLoginPage) return null;
 
   const isAdmin = user?.role === 'admin';
 
