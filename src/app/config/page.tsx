@@ -14,6 +14,51 @@ export default function ConfigPage() {
     setToast({ message, type });
   };
 
+  const [courseTeachers, setCourseTeachers] = useState<Record<string, string>>({});
+  const [ctLoading, setCtLoading] = useState(false);
+
+  const fetchCourseTeachers = async () => {
+    try {
+      const res = await fetch('/api/reports?run=SYSTEM&type=course_teachers');
+      const data = await res.json();
+      if (data.success && data.data) {
+        setCourseTeachers(data.data.mapping || {});
+      }
+    } catch (e) {
+      console.error('Error fetching course teachers:', e);
+    }
+  };
+
+  const handleSaveCourseTeacher = async (curso: string, teacher: string) => {
+    setCtLoading(true);
+    try {
+      const updatedMapping = { ...courseTeachers, [curso]: teacher };
+      const res = await fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'course_teachers',
+          run: 'SYSTEM',
+          data: {
+            semester: 1,
+            mapping: updatedMapping
+          }
+        })
+      });
+      const result = await res.json();
+      if (result.success) {
+        setCourseTeachers(updatedMapping);
+        showToast('Profesor Jefe asignado al curso', 'success');
+      } else {
+        showToast(result.error, 'error');
+      }
+    } catch (e) {
+      showToast('Error al guardar asignación', 'error');
+    } finally {
+      setCtLoading(false);
+    }
+  };
+
   const handleExcelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return;
     
@@ -65,6 +110,7 @@ export default function ConfigPage() {
   useEffect(() => {
     fetchUsers();
     fetchStudents();
+    fetchCourseTeachers();
   }, []);
 
   const handleDownloadDatabase = () => {
@@ -334,7 +380,8 @@ export default function ConfigPage() {
                 curso: target.curso.value,
                 profesor_jefe: target.profesor_jefe.value,
                 diagnostico: target.diagnostico.value,
-                fecha_diagnostico: target.fecha_diagnostico.value
+                fecha_diagnostico: target.fecha_diagnostico.value,
+                fecha_nacimiento: target.fecha_nacimiento.value
               };
               
               try {
@@ -359,8 +406,25 @@ export default function ConfigPage() {
           >
             <div className="form-group"><label style={{ fontSize: '0.7rem', fontWeight: 700 }}>RUT / RUN</label><input type="text" name="run" className="select-input" placeholder="12.345.678-9" required /></div>
             <div className="form-group"><label style={{ fontSize: '0.7rem', fontWeight: 700 }}>NOMBRE COMPLETO</label><input type="text" name="full_name" className="select-input" placeholder="Nombres Apellidos" required /></div>
-            <div className="form-group"><label style={{ fontSize: '0.7rem', fontWeight: 700 }}>CURSO</label><input type="text" name="curso" className="select-input" placeholder="Ej: 4° Básico A" required /></div>
+            <div className="form-group">
+              <label style={{ fontSize: '0.7rem', fontWeight: 700 }}>CURSO</label>
+              <input 
+                type="text" 
+                name="curso" 
+                className="select-input" 
+                placeholder="Ej: 4° Básico A" 
+                required 
+                onChange={(e) => {
+                  const teacher = courseTeachers[e.target.value.trim()];
+                  if (teacher && e.target.form) {
+                    const profInput = e.target.form.elements.namedItem('profesor_jefe') as HTMLInputElement;
+                    if (profInput) profInput.value = teacher;
+                  }
+                }}
+              />
+            </div>
             <div className="form-group"><label style={{ fontSize: '0.7rem', fontWeight: 700 }}>PROFESOR JEFE</label><input type="text" name="profesor_jefe" className="select-input" placeholder="Nombre del Profesor" /></div>
+            <div className="form-group"><label style={{ fontSize: '0.7rem', fontWeight: 700 }}>FECHA NACIMIENTO</label><input type="date" name="fecha_nacimiento" className="select-input" /></div>
             <div className="form-group"><label style={{ fontSize: '0.7rem', fontWeight: 700 }}>DIAGNÓSTICO NEE</label><input type="text" name="diagnostico" className="select-input" placeholder="Ej: TEA, TDAH..." /></div>
             <div className="form-group"><label style={{ fontSize: '0.7rem', fontWeight: 700 }}>FECHA DIAGNÓSTICO</label><input type="date" name="fecha_diagnostico" className="select-input" /></div>
             
@@ -528,6 +592,103 @@ export default function ConfigPage() {
                 </div>
               </div>
             )}
+          </div>
+        </section>
+
+        {/* Course Teachers Mapping Section */}
+        <section className="card shadow-lg" style={{ border: '1px solid rgba(124, 58, 237, 0.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+            <div style={{ fontSize: '2rem', background: 'rgba(124, 58, 237, 0.15)', padding: '0.75rem', borderRadius: '16px' }}>🏫</div>
+            <div>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Profesores Jefes por Curso</h2>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Asigna un Profesor Jefe a cada curso para autocompletar en los informes</p>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem' }}>
+            {/* Form */}
+            <form 
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const target = e.target as any;
+                const curso = target.curso.value;
+                const teacher = target.teacher.value;
+                if (!curso || !teacher) return;
+                await handleSaveCourseTeacher(curso, teacher);
+                target.reset();
+              }}
+              style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '1rem' }}
+            >
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 700 }}>Asignar / Actualizar Curso</h3>
+              <div className="form-group">
+                <label style={{ fontSize: '0.65rem', fontWeight: 700 }}>Curso</label>
+                <input type="text" name="curso" className="select-input" placeholder="Ej: 1° Básico" required />
+              </div>
+              <div className="form-group">
+                <label style={{ fontSize: '0.65rem', fontWeight: 700 }}>Profesor Jefe</label>
+                <input type="text" name="teacher" className="select-input" placeholder="Ej: Marcela Soto" required />
+              </div>
+              <button disabled={ctLoading} className="btn btn-primary" style={{ padding: '0.75rem', width: '100%', marginTop: '0.5rem' }}>
+                {ctLoading ? 'Guardando...' : '💾 Asignar Profesor'}
+              </button>
+            </form>
+
+            {/* List */}
+            <div>
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '1rem' }}>Asignaciones Activas</h3>
+              <div className="table-container shadow-sm" style={{ background: 'white', borderRadius: '12px', border: '1px solid var(--border)', maxHeight: '250px', overflowY: 'auto' }}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th style={{ padding: '0.75rem' }}>Curso</th>
+                      <th style={{ padding: '0.75rem' }}>Profesor Jefe</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'right' }}>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.keys(courseTeachers).length > 0 ? (
+                      Object.entries(courseTeachers).map(([curso, teacher]) => (
+                        <tr key={curso} style={{ borderTop: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '0.75rem', fontWeight: 600 }}>{curso}</td>
+                          <td style={{ padding: '0.75rem' }}>{teacher}</td>
+                          <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                            <button 
+                              onClick={async () => {
+                                if (confirm(`¿Eliminar asignación para ${curso}?`)) {
+                                  const updatedMapping = { ...courseTeachers };
+                                  delete updatedMapping[curso];
+                                  // Save to Supabase
+                                  const res = await fetch('/api/reports', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      type: 'course_teachers',
+                                      run: 'SYSTEM',
+                                      data: { semester: 1, mapping: updatedMapping }
+                                    })
+                                  });
+                                  if ((await res.json()).success) {
+                                    setCourseTeachers(updatedMapping);
+                                    showToast('Asignación eliminada', 'success');
+                                  }
+                                }
+                              }}
+                              style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}
+                            >
+                              🗑️
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={3} style={{ textAlign: 'center', padding: '2rem', opacity: 0.5 }}>No hay asignaciones de profesores</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </section>
 

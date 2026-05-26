@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
+import { sortStudentsByCourse } from '@/lib/courseUtils';
 
 export async function POST(request: NextRequest) {
   try {
-    const { run, full_name, curso, diagnostico, profesor_jefe, establecimiento, fecha_diagnostico } = await request.json();
+    const { run, full_name, curso, diagnostico, profesor_jefe, establecimiento, fecha_diagnostico, fecha_nacimiento } = await request.json();
 
     if (!run || !full_name) {
       return NextResponse.json({ error: 'RUT y Nombre son obligatorios' }, { status: 400 });
@@ -21,6 +22,7 @@ export async function POST(request: NextRequest) {
         full_name, 
         curso, 
         profesor_jefe,
+        fecha_nacimiento,
         establecimiento: establecimiento || 'LICEO CAMPANARIO',
         status_informe: 'PENDIENTE' 
       });
@@ -71,7 +73,7 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ success: true, data: enrichedStudents });
+    return NextResponse.json({ success: true, data: sortStudentsByCourse(enrichedStudents) });
   } catch (error: any) {
     console.error('Error fetching students:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -80,14 +82,14 @@ export async function GET() {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const { id, full_name, curso, run, diagnostico } = await request.json();
+    const { id, full_name, curso, run, diagnostico, fecha_nacimiento, profesor_jefe } = await request.json();
     
     if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
 
     // Update main student data
     const { error: updateError } = await supabase
       .from('students')
-      .update({ full_name, curso, run })
+      .update({ full_name, curso, run, fecha_nacimiento, profesor_jefe })
       .eq('id', id);
 
     if (updateError) throw updateError;

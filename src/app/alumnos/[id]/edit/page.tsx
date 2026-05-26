@@ -11,7 +11,9 @@ export default function EditStudentPage({ params }: { params: { id: string } }) 
     full_name: '',
     run: '',
     curso: '',
-    diagnostico: ''
+    diagnostico: '',
+    fecha_nacimiento: '',
+    profesor_jefe: ''
   });
 
   useEffect(() => {
@@ -21,10 +23,12 @@ export default function EditStudentPage({ params }: { params: { id: string } }) 
         const result = await response.json();
         if (result.success) {
           setFormData({
-            full_name: result.data.full_name,
-            run: result.data.run,
-            curso: result.data.curso,
-            diagnostico: result.data.diagnostico
+            full_name: result.data.full_name || '',
+            run: result.data.run || '',
+            curso: result.data.curso || '',
+            diagnostico: result.data.diagnostico || '',
+            fecha_nacimiento: result.data.fecha_nacimiento || '',
+            profesor_jefe: result.data.profesor_jefe || ''
           });
         }
       } catch (error) {
@@ -110,6 +114,28 @@ export default function EditStudentPage({ params }: { params: { id: string } }) 
             value={formData.curso}
             onChange={(e) => setFormData({ ...formData, curso: e.target.value })}
             required
+          />
+        </div>
+
+        <div>
+          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, marginBottom: '0.5rem' }}>Profesor Jefe</label>
+          <input 
+            type="text" 
+            className="select-input" 
+            style={{ width: '100%' }}
+            value={formData.profesor_jefe}
+            onChange={(e) => setFormData({ ...formData, profesor_jefe: e.target.value })}
+          />
+        </div>
+
+        <div>
+          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, marginBottom: '0.5rem' }}>Fecha de Nacimiento</label>
+          <input 
+            type="date" 
+            className="select-input" 
+            style={{ width: '100%' }}
+            value={formData.fecha_nacimiento ? formData.fecha_nacimiento.split('T')[0] : ''}
+            onChange={(e) => setFormData({ ...formData, fecha_nacimiento: e.target.value })}
           />
         </div>
 
