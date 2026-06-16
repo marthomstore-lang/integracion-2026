@@ -15,6 +15,7 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [users, setUsers] = useState<any[]>([]);
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToast({ message, type });
@@ -60,14 +61,19 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
               psicopedagogico: formData.reportePsicopedagogico,
               psicologico: formData.reportePsicologico,
               fonoaudiologico: formData.reporteFonoaudiologico,
-              kinesiologico: formData.reporteKinesiologico
+              kinesiologico: formData.reporteKinesiologico,
+              terapia_ocupacional: formData.reporteTerapiaOcupacional
             },
             desempeno_acad: formData.desempenoAcademico,
             convivencia_salud: {
               convivencia: formData.convivenciaSocial,
               motivacion: formData.motivacionEscolar,
               salud: formData.saludFisicaMental
-            }
+            },
+            sugerencias_apoyo: formData.sugerenciasApoyo,
+            firma_usuario_id: formData.firmaUsuarioId,
+            firma_usuario_nombre: formData.firmaUsuarioNombre,
+            firma_usuario_cargo: formData.firmaUsuarioCargo
           }
         })
       });
@@ -91,6 +97,21 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
     }, 10000); // 10 seconds for auto-save
     return () => clearTimeout(timer);
   }, [formData, semester]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch('/api/users');
+        const result = await res.json();
+        if (result.success && Array.isArray(result.data)) {
+          setUsers(result.data);
+        }
+      } catch (err) {
+        console.error('Error fetching users:', err);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -129,10 +150,15 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
             reportePsicologico: report.reportes_area?.psicologico || '',
             reporteFonoaudiologico: report.reportes_area?.fonoaudiologico || '',
             reporteKinesiologico: report.reportes_area?.kinesiologico || '',
+            reporteTerapiaOcupacional: report.reportes_area?.terapia_ocupacional || '',
             desempenoAcademico: report.desempeno_acad || '',
             convivenciaSocial: report.convivencia_salud?.convivencia || '',
             motivacionEscolar: report.convivencia_salud?.motivacion || '',
             saludFisicaMental: report.convivencia_salud?.salud || '',
+            sugerenciasApoyo: report.sugerencias_apoyo || '',
+            firmaUsuarioId: report.firma_usuario_id || '',
+            firmaUsuarioNombre: report.firma_usuario_nombre || '',
+            firmaUsuarioCargo: report.firma_usuario_cargo || '',
           });
         } else {
           setError(studentResult.error || 'No se encontró el estudiante.');
@@ -164,6 +190,7 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
       psicologico: formData.reportePsicologico,
       fonoaudiologico: formData.reporteFonoaudiologico,
       kinesiologico: formData.reporteKinesiologico,
+      terapia_ocupacional: formData.reporteTerapiaOcupacional,
       academico: formData.desempenoAcademico,
       convivencia: formData.convivenciaSocial
     };
@@ -346,133 +373,260 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
           <span>Especialistas</span>
         </div>
         <div className={`step ${step >= 3 ? 'active' : ''}`} onClick={() => setStepManual(3)} style={{ cursor: 'pointer' }}>
-          <div className="step-number">{step > 3 ? '✓' : '3'}</div>
-          <span>Académico</span>
-        </div>
-        <div className={`step ${step >= 4 ? 'active' : ''}`} onClick={() => setStepManual(4)} style={{ cursor: 'pointer' }}>
-          <div className="step-number">4</div>
-          <span>Salud y Social</span>
+          <div className="step-number">3</div>
+          <span>Sugerencias</span>
         </div>
       </div>
 
       <div className="card shadow-lg" style={{ minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
+        {/* Header exclusivo de impresión */}
+        <div className="print-header print-only" style={{ marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <img 
+              src="/images/logo_liceo.png" 
+              alt="Logo Liceo Campanario" 
+              style={{ width: '2cm', height: '2cm', objectFit: 'contain' }}
+            />
+            <div style={{ textAlign: 'center', flex: 1, padding: '0 1rem' }}>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'black', margin: 0 }}>
+                Informe para la Familia - 2026
+              </h1>
+              <p style={{ fontSize: '1.1rem', fontWeight: '600', marginTop: '0.5rem', color: '#475569', margin: 0 }}>
+                {semester === 1 ? '1° Semestre' : '2° Semestre'}
+              </p>
+            </div>
+            <img 
+              src="/images/logo_institucion.png" 
+              alt="Logo Institución" 
+              style={{ width: '2cm', height: '2cm', objectFit: 'contain' }}
+            />
+          </div>
+          <div style={{ borderBottom: '2px solid black', marginTop: '1rem', marginBottom: '1.5rem' }}></div>
+        </div>
+
         <div style={{ flex: 1 }}>
           <div className={step === 1 ? 'animate-in' : 'print-only'}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-              <section>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>
+            <div className="form-container" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              <section className="print-avoid-break">
+                <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>
                   <h3 style={{ color: 'var(--primary)', margin: 0 }}>I. Antecedentes Personales</h3>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>SEMESTRE {semester}</div>
                 </div>
                 
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group"><label>Nombre del Estudiante</label><input type="text" className="select-input" value={formData.estudianteNombre} onChange={e => setFormData({...formData, estudianteNombre: e.target.value})} /></div>
-                  <div className="form-group"><label>RUN</label><input type="text" className="select-input" value={formData.estudianteRut} readOnly /></div>
-                  <div className="form-group"><label>Fecha Informe</label><input type="date" className="select-input" value={formData.profesionalFechaInforme} onChange={e => setFormData({...formData, profesionalFechaInforme: e.target.value})} /></div>
-                  <div className="form-group"><label>Curso</label><input type="text" className="select-input" value={formData.estudianteCurso} onChange={e => setFormData({...formData, estudianteCurso: e.target.value})} /></div>
-                  <div className="form-group"><label>Diagnóstico N.E.E.</label><input type="text" className="select-input" value={formData.diagnostico} onChange={e => setFormData({...formData, diagnostico: e.target.value})} /></div>
-                  <div className="form-group"><label>Establecimiento</label><input type="text" className="select-input" value={formData.estudianteEstablecimiento} onChange={(e) => setFormData({...formData, estudianteEstablecimiento: e.target.value})} /></div>
+                <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label>Nombre del Estudiante</label>
+                    <input type="text" className="select-input no-print" value={formData.estudianteNombre} onChange={e => setFormData({...formData, estudianteNombre: e.target.value})} />
+                    <span className="print-only print-val">{formData.estudianteNombre}</span>
+                  </div>
+                  <div className="form-group">
+                    <label>RUN</label>
+                    <input type="text" className="select-input no-print" value={formData.estudianteRut} readOnly />
+                    <span className="print-only print-val">{formData.estudianteRut}</span>
+                  </div>
+                  <div className="form-group">
+                    <label>Fecha Informe</label>
+                    <input type="date" className="select-input no-print" value={formData.profesionalFechaInforme} onChange={e => setFormData({...formData, profesionalFechaInforme: e.target.value})} />
+                    <span className="print-only print-val">{formatDate(formData.profesionalFechaInforme)}</span>
+                  </div>
+                  <div className="form-group">
+                    <label>Curso</label>
+                    <input type="text" className="select-input no-print" value={formData.estudianteCurso} onChange={e => setFormData({...formData, estudianteCurso: e.target.value})} />
+                    <span className="print-only print-val">{formData.estudianteCurso}</span>
+                  </div>
+                  <div className="form-group">
+                    <label>Diagnóstico N.E.E.</label>
+                    <input type="text" className="select-input no-print" value={formData.diagnostico} onChange={e => setFormData({...formData, diagnostico: e.target.value})} />
+                    <span className="print-only print-val">{formData.diagnostico}</span>
+                  </div>
+                  <div className="form-group">
+                    <label>Establecimiento</label>
+                    <input type="text" className="select-input no-print" value={formData.estudianteEstablecimiento} onChange={(e) => setFormData({...formData, estudianteEstablecimiento: e.target.value})} />
+                    <span className="print-only print-val">{formData.estudianteEstablecimiento}</span>
+                  </div>
                 </div>
               </section>
 
-              <section>
+              <section className="print-avoid-break">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                   <h3 style={{ color: 'var(--primary)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', flex: 1 }}>II. Identificación del Apoderado</h3>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group"><label>Nombre Apoderado</label><input type="text" className="select-input" value={formData.apoderadoNombre} onChange={e => setFormData({...formData, apoderadoNombre: e.target.value})} /></div>
-                  <div className="form-group"><label>RUT</label><input type="text" className="select-input" value={formData.apoderadoRut} onChange={e => setFormData({...formData, apoderadoRut: e.target.value})} /></div>
-                  <div className="form-group"><label>Parentesco</label><input type="text" className="select-input" value={formData.apoderadoRelacion} onChange={e => setFormData({...formData, apoderadoRelacion: e.target.value})} /></div>
+                <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                  <div className="form-group">
+                    <label>Nombre Apoderado</label>
+                    <input type="text" className="select-input no-print" value={formData.apoderadoNombre} onChange={e => setFormData({...formData, apoderadoNombre: e.target.value})} />
+                    <span className="print-only print-val">{formData.apoderadoNombre}</span>
+                  </div>
+                  <div className="form-group">
+                    <label>RUT</label>
+                    <input type="text" className="select-input no-print" value={formData.apoderadoRut} onChange={e => setFormData({...formData, apoderadoRut: e.target.value})} />
+                    <span className="print-only print-val">{formData.apoderadoRut}</span>
+                  </div>
+                  <div className="form-group">
+                    <label>Parentesco</label>
+                    <input type="text" className="select-input no-print" value={formData.apoderadoRelacion} onChange={e => setFormData({...formData, apoderadoRelacion: e.target.value})} />
+                    <span className="print-only print-val">{formData.apoderadoRelacion}</span>
+                  </div>
                 </div>
-              </section>
-              
-              <section>
-                <div className="form-group"><label>Profesor(a) Jefe</label><input type="text" className="select-input" value={formData.profesorJefe} onChange={e => setFormData({...formData, profesorJefe: e.target.value})} /></div>
+                <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label>Profesor(a) Jefe</label>
+                    <input type="text" className="select-input no-print" value={formData.profesorJefe} onChange={e => setFormData({...formData, profesorJefe: e.target.value})} />
+                    <span className="print-only print-val">{formData.profesorJefe}</span>
+                  </div>
+                  <div className="form-group">
+                    <label>Docente Diferencial</label>
+                    <input type="text" className="select-input no-print" value={formData.profesionalNombre} onChange={e => setFormData({...formData, profesionalNombre: e.target.value})} />
+                    <span className="print-only print-val">{formData.profesionalNombre}</span>
+                  </div>
+                </div>
               </section>
             </div>
           </div>
 
           <div className={step === 2 ? 'animate-in' : 'print-only'}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <h3 style={{ color: 'var(--primary)', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem' }}>II. Reporte de Áreas de Apoyo</h3>
+            <div className="form-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <h3 style={{ color: 'var(--primary)', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem' }}>III. Reporte de Áreas de Apoyo</h3>
               <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '0.5rem' }} className="no-print">
-                {['Psicopedagógica', 'Psicológica', 'Fonoaudiológica', 'Kinesiológica'].map(area => (
+                {['Psicopedagógica', 'Psicológica', 'Fonoaudiológica', 'Kinesiológica', 'Terapia Ocupacional'].map(area => (
                   <button key={area} onClick={() => setSubStep(area)} className={`btn ${subStep === area ? 'btn-primary' : ''}`} style={{ fontSize: '0.7rem' }}>{area}</button>
                 ))}
               </div>
 
-              <section className={subStep === 'Psicopedagógica' ? 'active-area' : 'print-area'} style={{ padding: '1.5rem', background: '#fff', border: '1px solid var(--border)', borderRadius: '12px' }}>
+              <section className={`${subStep === 'Psicopedagógica' ? 'active-area' : 'print-area'} print-avoid-break`} style={{ padding: '1.5rem', background: '#fff', border: '1px solid var(--border)', borderRadius: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                   <h4 style={{ color: 'var(--secondary)', textTransform: 'uppercase', fontSize: '0.875rem' }}>ÁREA PSICOPEDAGÓGICA</h4>
                   <button type="button" onClick={() => openAIModal('Área Psicopedagógica', 'reportePsicopedagogico')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
                 </div>
-                <textarea className="select-input" style={{ width: '100%', minHeight: '200px' }} value={formData.reportePsicopedagogico} onChange={e => setFormData({...formData, reportePsicopedagogico: e.target.value})} />
+                <textarea className="select-input no-print" style={{ width: '100%', minHeight: '200px' }} value={formData.reportePsicopedagogico} onChange={e => setFormData({...formData, reportePsicopedagogico: e.target.value})} />
+                <div className="print-only print-text-block">
+                  {formData.reportePsicopedagogico || 'No presenta observaciones.'}
+                </div>
               </section>
               
-              <section className={subStep === 'Psicológica' ? 'active-area' : 'print-area'} style={{ padding: '1.5rem', background: '#fff', border: '1px solid var(--border)', borderRadius: '12px' }}>
+              <section className={`${subStep === 'Psicológica' ? 'active-area' : 'print-area'} print-avoid-break`} style={{ padding: '1.5rem', background: '#fff', border: '1px solid var(--border)', borderRadius: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                   <h4 style={{ color: 'var(--secondary)', textTransform: 'uppercase', fontSize: '0.875rem' }}>ÁREA PSICOLÓGICA</h4>
                   <button type="button" onClick={() => openAIModal('Área Psicológica', 'reportePsicologico')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
                 </div>
-                <textarea className="select-input" style={{ width: '100%', minHeight: '200px' }} value={formData.reportePsicologico} onChange={e => setFormData({...formData, reportePsicologico: e.target.value})} />
+                <textarea className="select-input no-print" style={{ width: '100%', minHeight: '200px' }} value={formData.reportePsicologico} onChange={e => setFormData({...formData, reportePsicologico: e.target.value})} />
+                <div className="print-only print-text-block">
+                  {formData.reportePsicologico || 'No presenta observaciones.'}
+                </div>
               </section>
               
-              <section className={subStep === 'Fonoaudiológica' ? 'active-area' : 'print-area'} style={{ padding: '1.5rem', background: '#fff', border: '1px solid var(--border)', borderRadius: '12px' }}>
+              <section className={`${subStep === 'Fonoaudiológica' ? 'active-area' : 'print-area'} print-avoid-break`} style={{ padding: '1.5rem', background: '#fff', border: '1px solid var(--border)', borderRadius: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                   <h4 style={{ color: 'var(--secondary)', textTransform: 'uppercase', fontSize: '0.875rem' }}>ÁREA FONOAUDIOLÓGICA</h4>
                   <button type="button" onClick={() => openAIModal('Área Fonoaudiológica', 'reporteFonoaudiologico')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
                 </div>
-                <textarea className="select-input" style={{ width: '100%', minHeight: '200px' }} value={formData.reporteFonoaudiologico} onChange={e => setFormData({...formData, reporteFonoaudiologico: e.target.value})} />
+                <textarea className="select-input no-print" style={{ width: '100%', minHeight: '200px' }} value={formData.reporteFonoaudiologico} onChange={e => setFormData({...formData, reporteFonoaudiologico: e.target.value})} />
+                <div className="print-only print-text-block">
+                  {formData.reporteFonoaudiologico || 'No presenta observaciones.'}
+                </div>
               </section>
               
-              <section className={subStep === 'Kinesiológica' ? 'active-area' : 'print-area'} style={{ padding: '1.5rem', background: '#fff', border: '1px solid var(--border)', borderRadius: '12px' }}>
+              <section className={`${subStep === 'Kinesiológica' ? 'active-area' : 'print-area'} print-avoid-break`} style={{ padding: '1.5rem', background: '#fff', border: '1px solid var(--border)', borderRadius: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                   <h4 style={{ color: 'var(--secondary)', textTransform: 'uppercase', fontSize: '0.875rem' }}>ÁREA KINESIOLÓGICA</h4>
                   <button type="button" onClick={() => openAIModal('Área Kinesiológica', 'reporteKinesiologico')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
                 </div>
-                <textarea className="select-input" style={{ width: '100%', minHeight: '200px' }} value={formData.reporteKinesiologico} onChange={e => setFormData({...formData, reporteKinesiologico: e.target.value})} />
+                <textarea className="select-input no-print" style={{ width: '100%', minHeight: '200px' }} value={formData.reporteKinesiologico} onChange={e => setFormData({...formData, reporteKinesiologico: e.target.value})} />
+                <div className="print-only print-text-block">
+                  {formData.reporteKinesiologico || 'No presenta observaciones.'}
+                </div>
+              </section>
+
+              <section className={`${subStep === 'Terapia Ocupacional' ? 'active-area' : 'print-area'} print-avoid-break`} style={{ padding: '1.5rem', background: '#fff', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h4 style={{ color: 'var(--secondary)', textTransform: 'uppercase', fontSize: '0.875rem' }}>ÁREA TERAPIA OCUPACIONAL</h4>
+                  <button type="button" onClick={() => openAIModal('Área Terapia Ocupacional', 'reporteTerapiaOcupacional')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
+                </div>
+                <textarea className="select-input no-print" style={{ width: '100%', minHeight: '200px' }} value={formData.reporteTerapiaOcupacional} onChange={e => setFormData({...formData, reporteTerapiaOcupacional: e.target.value})} />
+                <div className="print-only print-text-block">
+                  {formData.reporteTerapiaOcupacional || 'No presenta observaciones.'}
+                </div>
               </section>
             </div>
           </div>
 
           <div className={step === 3 ? 'animate-in' : 'print-only'}>
-            <section>
-              <h3 style={{ color: 'var(--primary)', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>III. Desempeño Académico</h3>
-              <div className="form-group">
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <label>Observaciones</label>
-                  <button type="button" onClick={() => openAIModal('Rendimiento Académico', 'desempenoAcademico')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
+            <div className="form-container" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              <section className="print-avoid-break">
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                  <h3 style={{ color: 'var(--primary)', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem', flex: 1, marginTop: 0 }}>
+                    IV. Sugerencias de Apoyo en el Hogar y Establecimiento
+                  </h3>
+                  <button type="button" onClick={() => openAIModal('Sugerencias de Apoyo en el Hogar y Establecimiento', 'sugerenciasApoyo')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
                 </div>
-                <textarea className="select-input" style={{ width: '100%', minHeight: '250px' }} value={formData.desempenoAcademico} onChange={e => setFormData({...formData, desempenhoAcademico: e.target.value})} />
-              </div>
-            </section>
-          </div>
+                <textarea className="select-input no-print" style={{ width: '100%', minHeight: '200px' }} value={formData.sugerenciasApoyo} onChange={e => setFormData({...formData, sugerenciasApoyo: e.target.value})} />
+                <div className="print-only print-text-block">
+                  {formData.sugerenciasApoyo || 'No presenta observaciones.'}
+                </div>
+              </section>
 
-          <div className={step === 4 ? 'animate-in' : 'print-only'}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-              <h3 style={{ color: 'var(--primary)', borderBottom: '2px solid var(--primary)', paddingBottom: '0.5rem' }}>IV. Convivencia y Salud</h3>
-              <section className="card shadow-sm" style={{ padding: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <h4 style={{ margin: 0, color: 'var(--secondary)', fontSize: '0.9rem' }}>PARTICIPACIÓN SOCIAL</h4>
-                  <button type="button" onClick={() => openAIModal('Convivencia Social', 'convivenciaSocial')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
+              {/* Controles de selección de firma en pantalla */}
+              <div className="no-print" style={{ marginTop: '2rem', maxWidth: '300px' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  Seleccionar Profesional Firmante
+                </label>
+                <select 
+                  value={formData.firmaUsuarioId} 
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    const user = users.find(u => u.id === selectedId);
+                    if (user) {
+                      setFormData({
+                        ...formData,
+                        firmaUsuarioId: selectedId,
+                        firmaUsuarioNombre: user.full_name || user.username,
+                        firmaUsuarioCargo: user.role === 'admin' ? 'Equipo de Gestión' : 'Docente/Profesional'
+                      });
+                    } else {
+                      setFormData({
+                        ...formData,
+                        firmaUsuarioId: '',
+                        firmaUsuarioNombre: '',
+                        firmaUsuarioCargo: ''
+                      });
+                    }
+                  }}
+                  className="select-input"
+                  style={{ width: '100%' }}
+                >
+                  <option value="">--- Seleccionar Profesional ---</option>
+                  {users.map(u => (
+                    <option key={u.id} value={u.id}>
+                      {u.full_name || u.username} ({u.role === 'admin' ? 'Gestión' : 'Docente'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Bloque de firmas impresas y en pantalla (Symmetric) */}
+              <section className="print-avoid-break" style={{ marginTop: '4rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', textAlign: 'center' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end' }}>
+                    <div style={{ width: '80%', borderTop: '1px solid black', paddingTop: '0.5rem' }}>
+                      <div style={{ fontWeight: 'bold', fontSize: '0.9rem', minHeight: '1.4rem' }}>
+                        {formData.firmaUsuarioNombre || 'Firma Profesional / Gestión'}
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: '#475569', minHeight: '1.2rem' }}>
+                        {formData.firmaUsuarioCargo || 'Cargo'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end' }}>
+                    <div style={{ width: '80%', borderTop: '1px solid black', paddingTop: '0.5rem' }}>
+                      <div style={{ fontWeight: 'bold', fontSize: '0.9rem', minHeight: '1.4rem' }}>
+                        {formData.apoderadoNombre || 'Firma Apoderado'}
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: '#475569', minHeight: '1.2rem' }}>
+                        {formData.apoderadoRut ? `RUT: ${formData.apoderadoRut}` : 'Apoderado'}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <textarea className="select-input" style={{ width: '100%', minHeight: '120px' }} value={formData.convivenciaSocial} onChange={e => setFormData({...formData, convivenciaSocial: e.target.value})} />
-              </section>
-              
-              <section className="card shadow-sm" style={{ padding: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <h4 style={{ margin: 0, color: 'var(--secondary)', fontSize: '0.9rem' }}>MOTIVACIÓN ESCOLAR</h4>
-                  <button type="button" onClick={() => openAIModal('Motivación Escolar', 'motivacionEscolar')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
-                </div>
-                <textarea className="select-input" style={{ width: '100%', minHeight: '120px' }} value={formData.motivacionEscolar} onChange={e => setFormData({...formData, motivacionEscolar: e.target.value})} />
-              </section>
-              
-              <section className="card shadow-sm" style={{ padding: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <h4 style={{ margin: 0, color: 'var(--secondary)', fontSize: '0.9rem' }}>SALUD FÍSICA Y MENTAL</h4>
-                  <button type="button" onClick={() => openAIModal('Salud', 'saludFisicaMental')} className="btn no-print" style={{ fontSize: '0.7rem' }}>✨ IA</button>
-                </div>
-                <textarea className="select-input" style={{ width: '100%', minHeight: '120px' }} value={formData.saludFisicaMental} onChange={e => setFormData({...formData, saludFisicaMental: e.target.value})} />
               </section>
             </div>
           </div>
@@ -484,7 +638,7 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
             <button className="btn" style={{ background: 'var(--primary)', color: 'white', fontWeight: 800, padding: '0.75rem 2rem', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)' }} onClick={() => handleSave(false)}>
               {saving ? 'Guardando...' : '💾 GUARDAR DATOS'}
             </button>
-            {step < 4 ? <button onClick={() => setStep(s => Math.min(s + 1, 4))} className="btn btn-primary">Siguiente →</button> : null}
+            {step < 3 ? <button onClick={() => setStep(s => Math.min(s + 1, 3))} className="btn btn-primary">Siguiente →</button> : null}
           </div>
         </div>
 
@@ -588,14 +742,21 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
           padding: 1.5rem;
         }
 
+        .print-logo-right {
+          height: 2cm;
+          width: 2cm;
+          object-fit: contain;
+        }
+
         @media screen { 
           .print-only, .print-area, .print-header { display: none !important; } 
           .active-area { display: block !important; } 
         }
 
         @media print {
-          @page { margin: 15mm; size: letter; }
-          body { background: white; color: black; font-family: 'Inter', sans-serif !important; }
+          @page { margin: 15mm !important; size: letter !important; }
+          @page :first { margin-top: 10mm !important; }
+          body { background: white; color: black; font-family: 'Inter', sans-serif !important; padding: 0 !important; }
           .no-print, aside, header, .stepper, .btn { display: none !important; }
           
           .card { 
@@ -604,19 +765,87 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
             padding: 0 !important; 
           }
           
-          .print-only, .print-area, .active-area { 
+          .print-only, .print-area, .active-area, .print-header { 
             display: block !important; 
-            margin-top: 1.5rem; 
-            break-inside: avoid;
-            page-break-inside: avoid;
+          }
+
+          .print-avoid-break {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+          }
+
+          .print-val {
+            display: block !important;
+            font-size: 1rem !important;
+            font-weight: 700 !important;
+            color: black !important;
+            padding: 0.05rem 0 !important;
+            border-bottom: 1px solid #cbd5e1 !important;
+            min-height: 1.4rem;
+          }
+
+          .print-text-block {
+            display: block !important;
+            font-size: 0.9rem !important;
+            line-height: 1.4 !important;
+            color: black !important;
+            white-space: pre-wrap !important;
+            word-break: break-word !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 6px !important;
+            padding: 0.5rem !important;
+            background: white !important;
+            min-height: 0 !important;
+            margin-top: 0.15rem !important;
+          }
+
+          .print-logo-right {
+            height: 2cm !important;
+            width: 2cm !important;
+            object-fit: contain !important;
+          }
+
+          .print-header {
+            margin-bottom: 0.5rem !important;
+          }
+
+          .section-header {
+            border-bottom: none !important;
+            margin-bottom: 0.4rem !important;
+            padding-bottom: 0 !important;
+          }
+
+          .form-container {
+            gap: 0.35rem !important;
+          }
+
+          .form-grid {
+            gap: 0.3rem !important;
+            margin-bottom: 0.25rem !important;
+          }
+
+          .form-group {
+            gap: 0.1rem !important;
+          }
+
+          label {
+            margin-bottom: 0.05rem !important;
+            font-size: 0.7rem !important;
           }
 
           h3 { 
             color: black !important; 
             border-bottom: 2px solid black !important;
-            padding-bottom: 0.5rem;
-            margin-top: 2rem !important;
+            padding-bottom: 0.2rem !important;
+            margin-top: 0.75rem !important;
+            margin-bottom: 0.4rem !important;
             break-after: avoid;
+          }
+
+          h4 {
+            margin: 0 0 0.2rem 0 !important;
+            font-size: 0.85rem !important;
+            color: black !important;
           }
 
           .select-input {
@@ -627,9 +856,17 @@ export default function InformeForm({ params: paramsPromise }: { params: Promise
             background: transparent !important;
           }
 
-          section {
-            break-inside: avoid;
-            margin-bottom: 2rem;
+          section, .card {
+            border: none !important;
+            background: transparent !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            margin-bottom: 0.6rem !important;
+          }
+
+          .card {
+            display: block !important;
+            min-height: 0 !important;
           }
 
           textarea {

@@ -16,6 +16,10 @@ export default function ConfigPage() {
 
   const [courseTeachers, setCourseTeachers] = useState<Record<string, string>>({});
   const [ctLoading, setCtLoading] = useState(false);
+  const [selectedCurso, setSelectedCurso] = useState('');
+  const [selectedTeacher, setSelectedTeacher] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingOriginalCurso, setEditingOriginalCurso] = useState<string | null>(null);
 
   const [printSettings, setPrintSettings] = useState({
     margin_top: 15,
@@ -90,10 +94,15 @@ export default function ConfigPage() {
     }
   };
 
-  const handleSaveCourseTeacher = async (curso: string, teacher: string) => {
+  const handleSaveCourseTeacher = async (curso: string, teacher: string, originalCurso?: string) => {
     setCtLoading(true);
     try {
-      const updatedMapping = { ...courseTeachers, [curso]: teacher };
+      const updatedMapping = { ...courseTeachers };
+      if (originalCurso && originalCurso !== curso) {
+        delete updatedMapping[originalCurso];
+      }
+      updatedMapping[curso] = teacher;
+
       const res = await fetch('/api/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -109,7 +118,7 @@ export default function ConfigPage() {
       const result = await res.json();
       if (result.success) {
         setCourseTeachers(updatedMapping);
-        showToast('Profesor Jefe asignado al curso', 'success');
+        showToast(originalCurso ? 'Asignación actualizada' : 'Profesor Jefe asignado al curso', 'success');
       } else {
         showToast(result.error, 'error');
       }
@@ -271,6 +280,11 @@ export default function ConfigPage() {
     }
   };
 
+  const coursesList = Array.from(new Set(allStudents.map(s => s.curso).filter(Boolean))).sort();
+  const coursesOptions = Array.from(new Set([
+    ...coursesList,
+    ...(selectedCurso ? [selectedCurso] : [])
+  ])).sort();
 
   return (
     <div className="animate-in" style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '4rem' }}>
@@ -672,27 +686,63 @@ export default function ConfigPage() {
             <form 
               onSubmit={async (e) => {
                 e.preventDefault();
-                const target = e.target as any;
-                const curso = target.curso.value;
-                const teacher = target.teacher.value;
-                if (!curso || !teacher) return;
-                await handleSaveCourseTeacher(curso, teacher);
-                target.reset();
+                if (!selectedCurso || !selectedTeacher) return;
+                await handleSaveCourseTeacher(selectedCurso, selectedTeacher, isEditing ? editingOriginalCurso || undefined : undefined);
+                setSelectedCurso('');
+                setSelectedTeacher('');
+                setEditingOriginalCurso(null);
+                setIsEditing(false);
               }}
               style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '1rem' }}
             >
-              <h3 style={{ fontSize: '0.95rem', fontWeight: 700 }}>Asignar / Actualizar Curso</h3>
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 700 }}>
+                {isEditing ? '📝 Modificar Asignación' : '🏫 Asignar / Actualizar Curso'}
+              </h3>
               <div className="form-group">
                 <label style={{ fontSize: '0.65rem', fontWeight: 700 }}>Curso</label>
-                <input type="text" name="curso" className="select-input" placeholder="Ej: 1° Básico" required />
+                <select 
+                  name="curso" 
+                  className="select-input" 
+                  value={selectedCurso} 
+                  onChange={e => setSelectedCurso(e.target.value)}
+                  required
+                >
+                  <option value="">-- Seleccionar Curso --</option>
+                  {coursesOptions.map(curso => (
+                    <option key={curso} value={curso}>{curso}</option>
+                  ))}
+                </select>
               </div>
               <div className="form-group">
                 <label style={{ fontSize: '0.65rem', fontWeight: 700 }}>Profesor Jefe</label>
-                <input type="text" name="teacher" className="select-input" placeholder="Ej: Marcela Soto" required />
+                <input 
+                  type="text" 
+                  name="teacher" 
+                  className="select-input" 
+                  value={selectedTeacher}
+                  onChange={e => setSelectedTeacher(e.target.value)}
+                  placeholder="Ej: Marcela Soto" 
+                  required 
+                />
               </div>
               <button disabled={ctLoading} className="btn btn-primary" style={{ padding: '0.75rem', width: '100%', marginTop: '0.5rem' }}>
-                {ctLoading ? 'Guardando...' : '💾 Asignar Profesor'}
+                {ctLoading ? 'Guardando...' : isEditing ? '💾 Actualizar Profesor' : '💾 Asignar Profesor'}
               </button>
+              {isEditing && (
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setIsEditing(false);
+                    setSelectedCurso('');
+                    setSelectedTeacher('');
+                    setEditingOriginalCurso(null);
+                  }} 
+                  className="btn" 
+                  style={{ padding: '0.75rem', width: '100%', background: '#e2e8f0', color: 'var(--text)', fontWeight: 600 }}
+                >
+                  Cancelar Edición
+                </button>
+              )}
             </form>
 
             {/* List */}
@@ -715,6 +765,20 @@ export default function ConfigPage() {
                           <td style={{ padding: '0.75rem' }}>{teacher}</td>
                           <td style={{ padding: '0.75rem', textAlign: 'right' }}>
                             <button 
+                              type="button"
+                              onClick={() => {
+                                setSelectedCurso(curso);
+                                setSelectedTeacher(teacher);
+                                setEditingOriginalCurso(curso);
+                                setIsEditing(true);
+                              }}
+                              style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', marginRight: '0.75rem', fontSize: '1.1rem' }}
+                              title="Editar asignación"
+                            >
+                              ✏️
+                            </button>
+                            <button 
+                              type="button"
                               onClick={async () => {
                                 if (confirm(`¿Eliminar asignación para ${curso}?`)) {
                                   const updatedMapping = { ...courseTeachers };
@@ -732,10 +796,17 @@ export default function ConfigPage() {
                                   if ((await res.json()).success) {
                                     setCourseTeachers(updatedMapping);
                                     showToast('Asignación eliminada', 'success');
+                                    if (isEditing && selectedCurso === curso) {
+                                      setIsEditing(false);
+                                      setSelectedCurso('');
+                                      setSelectedTeacher('');
+                                      setEditingOriginalCurso(null);
+                                    }
                                   }
                                 }
                               }}
-                              style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}
+                              style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.1rem' }}
+                              title="Eliminar asignación"
                             >
                               🗑️
                             </button>

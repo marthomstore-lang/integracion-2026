@@ -103,8 +103,7 @@ function ReportsMenu({ pathname, isCollapsed }: { pathname: string, isCollapsed:
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const isLoginPage = pathname === '/login' || (typeof window !== 'undefined' && window.location.pathname === '/login');
-  console.log(`Sidebar render: pathname=${pathname} isLoginPage=${isLoginPage} windowPath=${typeof window !== 'undefined' ? window.location.pathname : 'server'}`);
+  const isLoginPage = pathname === '/login';
   const [user, setUser] = useState<{ name: string, role: string } | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -259,7 +258,7 @@ export default function Sidebar() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: isCollapsed ? 'center' : 'flex-start' }}>
           <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: isAdmin ? 'var(--primary)' : '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '0.8rem' }}>
-            {user?.name.substring(0, 1).toUpperCase() || 'U'}
+            {user?.name?.substring(0, 1).toUpperCase() || 'U'}
           </div>
           {!isCollapsed && (
             <div style={{ overflow: 'hidden' }}>

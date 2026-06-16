@@ -633,7 +633,7 @@ export default function PlanTeaForm({ params: paramsPromise }: { params: Promise
         .paec-table textarea { width: 100%; border: none; min-height: 80px; font-size: 0.9rem; padding: 0.5rem; font-family: inherit; }
 
         @media print {
-          @page { margin: 1cm; size: auto; }
+          @page { margin: 1cm !important; size: letter !important; }
           body { background: white !important; font-family: 'Inter', sans-serif !important; }
           .no-print, header, .btn { display: none !important; }
           .card { border: none !important; box-shadow: none !important; }

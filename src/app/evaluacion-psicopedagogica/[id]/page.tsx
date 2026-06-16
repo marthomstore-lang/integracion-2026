@@ -422,7 +422,7 @@ export default function PsicopedagogicoForm({ params: paramsPromise }: { params:
       </div>
 
       {/* Form Container */}
-      <div className="card shadow-lg" style={{ minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
+      <div className="card shadow-lg no-print" style={{ minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
         <div style={{ flex: 1 }}>
           
           {/* STEP 1: IDENTIFICACION & MOTIVO */}
@@ -866,189 +866,509 @@ export default function PsicopedagogicoForm({ params: paramsPromise }: { params:
         </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
+      {/* Print only Document (Carta 6-page replica) */}
+      <div className="pdf-print-container print-only">
+        {/* PAGE 1 */}
+        <div className="pdf-page">
+          <div className="pdf-page-header">
+            <img src="/images/logo_mineduc.jpg" alt="Mineduc Logo" className="pdf-header-logo" />
+            <div className="pdf-header-text">
+              <div className="pdf-header-subtitle">Decreto 170/2010</div>
+              <div className="pdf-header-subtitle2">Evaluación Diagnóstica Integral de Necesidades Educativas Especiales</div>
+              <div className="pdf-header-title">INFORME DE EVALUACIÓN PSICOPEDAGÓGICA</div>
+              <div className="pdf-header-title-sub">(Detección de NEE)</div>
+            </div>
+            <img src="/images/logo_institucion.png" alt="Logo Institución" className="pdf-header-institution-logo" />
+          </div>
 
-        .animate-in {
-          animation: fadeIn 0.4s ease-out;
-          font-family: 'Outfit', sans-serif;
-        }
+          <div className="pdf-section-title-bar">I. IDENTIFICACIÓN</div>
+          <table className="pdf-table-grid">
+            <tbody>
+              <tr>
+                <td className="pdf-label" style={{ width: '35%' }}>NOMBRE DE IDENTIDAD ESTUDIANTE</td>
+                <td className="pdf-value" style={{ width: '65%' }}>{formData.estudianteNombre}</td>
+              </tr>
+              <tr>
+                <td className="pdf-label">NOMBRE SOCIAL DEL ESTUDIANTE</td>
+                <td className="pdf-value">{formData.estudianteNombreSocial}</td>
+              </tr>
+              <tr>
+                <td className="pdf-label">FECHA DE NACIMIENTO</td>
+                <td className="pdf-value">{formData.estudianteFechaNac}</td>
+              </tr>
+              <tr>
+                <td className="pdf-label">EDAD</td>
+                <td className="pdf-value">{formData.estudianteEdad}</td>
+              </tr>
+              <tr>
+                <td className="pdf-label">ESTABLECIMIENTO</td>
+                <td className="pdf-value">{formData.estudianteEstablecimiento}</td>
+              </tr>
+              <tr>
+                <td className="pdf-label">CURSO/NIVEL</td>
+                <td className="pdf-value">{formData.estudianteCurso}</td>
+              </tr>
+              <tr>
+                <td className="pdf-label">FECHA DE EVALUACIÓN</td>
+                <td className="pdf-value">{formData.fechaEvaluacion ? formatDate(formData.fechaEvaluacion) : ''}</td>
+              </tr>
+              <tr>
+                <td className="pdf-label">DIAGNÓSTICO</td>
+                <td className="pdf-value">{formData.diagnostico}</td>
+              </tr>
+              <tr>
+                <td className="pdf-label">FECHA DE EMISIÓN DE DIAGNÓSTICO</td>
+                <td className="pdf-value">{formData.fechaEmisionDiagnostico ? formatDate(formData.fechaEmisionDiagnostico) : ''}</td>
+              </tr>
+            </tbody>
+          </table>
 
-        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-        label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.025em; }
-        
-        .select-input {
-          padding: 0.75rem 1rem;
-          border: 1px solid var(--border);
-          border-radius: 8px;
-          font-size: 0.9rem;
-          font-weight: 600;
-          transition: all 0.2s;
-          background: #f8fafc;
-          font-family: inherit;
-        }
-        .select-input:focus {
-          outline: none;
-          border-color: var(--primary);
-          box-shadow: 0 0 0 3px var(--primary-light);
-          background: white;
-        }
+          <div className="pdf-section-title-bar" style={{ marginTop: '0.4rem' }}>II. MOTIVO DE EVALUACIÓN PSICOPEDAGOGICA</div>
+          <table className="pdf-table-grid">
+            <tbody>
+              <tr>
+                <td style={{ width: '33.3%', padding: '0.35rem', borderRight: '1px solid black' }}>
+                  <strong>INGRESO:</strong> <span style={{ fontFamily: 'monospace', fontSize: '1.1rem', marginLeft: '0.5rem' }}>{formData.motivoEvaluacion === 'ingreso' ? '[X]' : '[  ]'}</span>
+                </td>
+                <td style={{ width: '33.3%', padding: '0.35rem', borderRight: '1px solid black' }}>
+                  <strong>REEVALUACIÓN:</strong> <span style={{ fontFamily: 'monospace', fontSize: '1.1rem', marginLeft: '0.5rem' }}>{formData.motivoEvaluacion === 'reevaluacion' ? '[X]' : '[  ]'}</span>
+                </td>
+                <td style={{ width: '33.3%', padding: '0.35rem' }}>
+                  <strong>OTRO:</strong> <span style={{ fontFamily: 'monospace', fontSize: '1.1rem', marginLeft: '0.5rem' }}>{formData.motivoEvaluacion === 'otro' ? `[X] ${formData.motivoOtrosDetalle}` : '[  ]'}</span>
+                </td>
+              </tr>
+              <tr>
+                <td colSpan={3} className="pdf-table-header-cell">INSTRUMENTOS APLICADOS</td>
+              </tr>
+              <tr>
+                <td colSpan={3} className="pdf-text-cell" style={{ minHeight: '60px', height: '65px', verticalAlign: 'top' }}>
+                  {formData.instrumentosAplicados}
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-        .btn {
-          padding: 0.75rem 1.5rem;
-          border-radius: 8px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s;
-          border: none;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
-        .btn-primary { background: var(--primary); color: white; }
+          <div className="pdf-section-title-bar" style={{ marginTop: '0.4rem' }}>III. ANTECEDENTES RELEVANTES SOBRE LA HISTORIA ESCOLAR</div>
+          <table className="pdf-table-grid">
+            <tbody>
+              <tr>
+                <td className="pdf-text-cell" style={{ minHeight: '100px', height: '100px', verticalAlign: 'top' }}>
+                  {formData.antecedentesEscolares}
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-        .card {
-          background: white;
-          border-radius: 20px;
-          border: 1px solid var(--border);
-          padding: 2.5rem;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-        }
+          <div className="pdf-page-footer">
+            <div className="pdf-footer-text">No se debe modificar el formato oficial; cada apartado debe conservar su estructura e información base.</div>
+            <div className="pdf-footer-page-num">1</div>
+            <div className="pdf-footer-bar">
+              <div className="pdf-footer-bar-blue"></div>
+              <div className="pdf-footer-bar-red"></div>
+            </div>
+          </div>
+        </div>
 
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
+        {/* PAGE 2 */}
+        <div className="pdf-page">
+          <div className="pdf-page-header">
+            <img src="/images/logo_mineduc.jpg" alt="Mineduc Logo" className="pdf-header-logo" />
+            <div className="pdf-header-text">
+              <div className="pdf-header-subtitle">Decreto 170/2010</div>
+              <div className="pdf-header-subtitle2">Evaluación Diagnóstica Integral de Necesidades Educativas Especiales</div>
+              <div className="pdf-header-title">INFORME DE EVALUACIÓN PSICOPEDAGÓGICA</div>
+              <div className="pdf-header-title-sub">(Detección de NEE)</div>
+            </div>
+            <img src="/images/logo_institucion.png" alt="Logo Institución" className="pdf-header-institution-logo" />
+          </div>
 
-        /* --- Print layout css --- */
-        @media screen { 
-          .print-only { display: none !important; } 
-        }
+                  <table className="pdf-table-grid" style={{ flex: 1, marginBottom: '0.8rem' }}>
+            <tbody>
+              <tr>
+                <td className="pdf-subheading-cell">
+                  <strong>a) Habilidades Cognitivas y Comunicativas</strong>
+                  <span className="pdf-desc-text">
+                    (Atención y concentración, Memoria (a corto y largo plazo), Funciones ejecutivas (planificación, organización, control inhibitorio), Razonamiento lógico-matemático, Resolución de problemas y creatividad, Lenguaje oral y escrito (vocabulario, gramática, coherencia), Comprensión lectora y auditiva, Expresión oral y escrita, Uso de sistemas alternativos o aumentativos de comunicación (cuando es necesario), Relaciones lógico-matemáticas, lectura, escritura, aprendizajes matemáticos, Habilidades digitales (manejo de tecnología), Habilidades adaptativas (transferencia de aprendizajes a contextos nuevos).
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td className="pdf-text-cell" style={{ minHeight: '120px', height: '120px', verticalAlign: 'top' }}>
+                  {formData.analisisCognitivo}
+                </td>
+              </tr>
+              <tr>
+                <td className="pdf-subheading-cell">
+                  <strong>b) Habilidades Personales, Socioemocionales y de Aproximación al Aprendizaje</strong>
+                  <span className="pdf-desc-text">
+                    (autoestima y autoconfianza, motivación intrínseca, talentos e intereses personales, manejo de emociones y autorregulación emocional, tolerancia a la frustración, trabajo en equipo y cooperación, empatía y respeto por la diversidad, resolución de conflictos, habilidades para pedir ayuda y ofrecer apoyo, curiosidad e interés, persistencia y esfuerzo, estrategias para aprender — organización, uso de recursos, autocontrol — y flexibilidad cognitiva para adaptarse a cambios y nuevos desafíos).
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td className="pdf-text-cell" style={{ minHeight: '120px', height: '120px', verticalAlign: 'top' }}>
+                  {formData.analisisSocioemocional}
+                </td>
+              </tr>
+              <tr>
+                <td className="pdf-subheading-cell">
+                  <strong>b) Habilidades motoras, de autonomía y sensoriales</strong>
+                  <span className="pdf-desc-text">
+                    (motricidad gruesa (equilibrio, desplazamiento, coordinación general), motricidad fina (destreza manual, escritura, manipulación de objetos), autonomía funcional / cuidado de sí mismo (higiene personal, alimentación, vestuario, manejo del tiempo y rutinas, seguridad personal y autocuidado) y capacidades sensoperceptivas (visión, audición, tacto, gusto y olfato, integración sensorial, uso de ayudas técnicas como audífonos, lentes o bastón).
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td className="pdf-text-cell" style={{ minHeight: '90px', height: '90px', verticalAlign: 'top' }}>
+                  {formData.analisisMotor}
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-        @media print {
-          @page { 
-            margin: 15mm 15mm 15mm 15mm; 
-            size: letter; 
-          }
-          
-          body { 
-            background: white !important; 
-            color: black !important; 
-            font-family: 'Outfit', sans-serif !important; 
-            font-size: 10pt !important;
-          }
-          
-          .no-print { display: none !important; }
-          .print-only { display: block !important; }
-          
-          .card { 
-            box-shadow: none !important; 
-            border: none !important; 
-            padding: 0 !important; 
-            background: transparent !important;
-          }
+          <div className="pdf-page-footer">
+            <div className="pdf-footer-text">No se debe modificar el formato oficial; cada apartado debe conservar su estructura e información base.</div>
+            <div className="pdf-footer-page-num">2</div>
+            <div className="pdf-footer-bar">
+              <div className="pdf-footer-bar-blue"></div>
+              <div className="pdf-footer-bar-red"></div>
+            </div>
+          </div>
+        </div>
 
-          .print-header-block {
-            border-bottom: 2px solid black;
-            padding-bottom: 1rem;
-            margin-bottom: 2rem;
-          }
+        {/* PAGE 3 */}
+        <div className="pdf-page">
+          <div className="pdf-page-header">
+            <img src="/images/logo_mineduc.jpg" alt="Mineduc Logo" className="pdf-header-logo" />
+            <div className="pdf-header-text">
+              <div className="pdf-header-subtitle">Decreto 170/2010</div>
+              <div className="pdf-header-subtitle2">Evaluación Diagnóstica Integral de Necesidades Educativas Especiales</div>
+              <div className="pdf-header-title">INFORME DE EVALUACIÓN PSICOPEDAGÓGICA</div>
+              <div className="pdf-header-title-sub">(Detección de NEE)</div>
+            </div>
+            <img src="/images/logo_institucion.png" alt="Logo Institución" className="pdf-header-institution-logo" />
+          </div>
 
-          /* Force page breaks on specific section wrappers to match standard 6 pages */
-          .print-section-break {
-            page-break-after: always;
-            break-after: page;
-          }
-          
-          .print-avoid-break {
-            break-inside: avoid;
-            page-break-inside: avoid;
-          }
+          <div className="pdf-section-title-bar">V. SINTESIS</div>
+          <div className="pdf-section-subtitle-bar">
+            (Fortalezas: los aspectos positivos o recursos del/la estudiante — capacidades, avances, intereses, Desafíos o necesidades: dificultades, barreras o aspectos por mejorar, Progresos: cómo ha evolucionado respecto de evaluaciones previas o metas establecidas, Contexto: factores del entorno que influyen — familia, escuela, apoyos, condiciones socioemocionales, Recomendaciones / proyecciones: sugerencias para continuar el apoyo, adaptaciones, objetivos próximos, Estrategias que han funcionado: prácticas, metodologías o recursos que han sido efectivos)
+          </div>
 
-          h3 { 
-            color: black !important; 
-            border-bottom: 2px solid black !important;
-            padding-bottom: 0.25rem;
-            margin-top: 1.5rem !important;
-            font-size: 11pt !important;
-            break-after: avoid;
-          }
+          <table className="pdf-table-grid" style={{ flex: 1, marginBottom: '0.8rem' }}>
+            <tbody>
+              <tr>
+                <td className="pdf-subheading-cell"><strong>a) Habilidades Cognitivas y Comunicativas</strong></td>
+              </tr>
+              <tr>
+                <td className="pdf-text-cell" style={{ minHeight: '90px', height: '90px', verticalAlign: 'top' }}>
+                  {formData.sintesisCognitivo}
+                </td>
+              </tr>
+              <tr>
+                <td className="pdf-subheading-cell"><strong>b) Habilidades Personales, Socioemocionales y de Aproximación al Aprendizaje</strong></td>
+              </tr>
+              <tr>
+                <td className="pdf-text-cell" style={{ minHeight: '90px', height: '90px', verticalAlign: 'top' }}>
+                  {formData.sintesisSocioemocional}
+                </td>
+              </tr>
+              <tr>
+                <td className="pdf-subheading-cell"><strong>c) Habilidades motoras, de autonomía y sensoriales</strong></td>
+              </tr>
+              <tr>
+                <td className="pdf-text-cell" style={{ minHeight: '90px', height: '90px', verticalAlign: 'top' }}>
+                  {formData.sintesisMotor}
+                </td>
+              </tr>
+              <tr>
+                <td className="pdf-subheading-cell"><strong>Conclusión</strong></td>
+              </tr>
+              <tr>
+                <td className="pdf-text-cell" style={{ minHeight: '95px', height: '95px', verticalAlign: 'top' }}>
+                  {formData.sintesisConclusion}
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-          .select-input {
-            border: none !important;
-            border-bottom: 1px solid #777 !important;
-            padding: 0.15rem 0 !important;
-            font-size: 9.5pt !important;
-            font-weight: 700 !important;
-            background: transparent !important;
-            border-radius: 0 !important;
-          }
-          
-          textarea.select-input {
-            border: 1px solid #777 !important;
-            border-radius: 4px !important;
-            padding: 0.5rem !important;
-            min-height: 120px !important;
-            height: auto !important;
-            overflow: visible !important;
-          }
+          <div className="pdf-page-footer">
+            <div className="pdf-footer-text">No se debe modificar el formato oficial; cada apartado debe conservar su estructura e información base.</div>
+            <div className="pdf-footer-page-num">3</div>
+            <div className="pdf-footer-bar">
+              <div className="pdf-footer-bar-blue"></div>
+              <div className="pdf-footer-bar-red"></div>
+            </div>
+          </div>
+        </div>
 
-          /* Specific layouts for identification grid in print */
-          .form-grid-2col {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 1rem !important;
-          }
-          
-          .pauta-header-grid {
-            display: grid !important;
-            grid-template-columns: 2fr 1fr 1fr !important;
-            gap: 1rem !important;
-          }
+        {/* PAGE 4 */}
+        <div className="pdf-page">
+          <div className="pdf-page-header">
+            <img src="/images/logo_mineduc.jpg" alt="Mineduc Logo" className="pdf-header-logo" />
+            <div className="pdf-header-text">
+              <div className="pdf-header-subtitle">Decreto 170/2010</div>
+              <div className="pdf-header-subtitle2">Evaluación Diagnóstica Integral de Necesidades Educativas Especiales</div>
+              <div className="pdf-header-title">INFORME DE EVALUACIÓN PSICOPEDAGÓGICA</div>
+              <div className="pdf-header-title-sub">(Detección de NEE)</div>
+            </div>
+            <img src="/images/logo_institucion.png" alt="Logo Institución" className="pdf-header-institution-logo" />
+          </div>
 
-          table {
-            border: 1px solid black !important;
-            width: 100% !important;
-          }
-          th {
-            background: #eee !important;
-            color: black !important;
-            border-bottom: 1px solid black !important;
-            border-right: 1px solid black !important;
-            padding: 0.4rem !important;
-            font-size: 8pt !important;
-            -webkit-print-color-adjust: exact;
-          }
-          td {
-            border-bottom: 1px solid black !important;
-            border-right: 1px solid black !important;
-            padding: 0.4rem !important;
-            font-size: 8.5pt !important;
-          }
-          input[type="radio"] {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 12px;
-            height: 12px;
-            border: 1px solid black;
-            border-radius: 50%;
-            outline: none;
-            display: inline-block;
-            vertical-align: middle;
-            margin: 0 auto;
-            position: relative;
-          }
-          input[type="radio"]:checked::after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 6px;
-            height: 6px;
-            background: black;
-            border-radius: 50%;
-          }
-      ` }} />
+          <div className="pdf-section-title-bar">VI. Sugerencias</div>
+          <table className="pdf-table-grid" style={{ marginBottom: '1.2rem' }}>
+            <tbody>
+              <tr>
+                <td className="pdf-subheading-cell"><strong>1.- Al establecimiento educacional</strong></td>
+              </tr>
+              <tr>
+                <td className="pdf-text-cell" style={{ minHeight: '45px', height: '45px', verticalAlign: 'top' }}>
+                  {formData.sugerenciasEstablecimiento}
+                </td>
+              </tr>
+              <tr>
+                <td className="pdf-subheading-cell"><strong>2.- Al equipo de aula</strong></td>
+              </tr>
+              <tr>
+                <td className="pdf-text-cell" style={{ minHeight: '45px', height: '45px', verticalAlign: 'top' }}>
+                  {formData.sugerenciasEquipoAula}
+                </td>
+              </tr>
+              <tr>
+                <td className="pdf-subheading-cell"><strong>3.- Al estudiante</strong></td>
+              </tr>
+              <tr>
+                <td className="pdf-text-cell" style={{ minHeight: '45px', height: '45px', verticalAlign: 'top' }}>
+                  {formData.sugerenciasEstudiante}
+                </td>
+              </tr>
+              <tr>
+                <td className="pdf-subheading-cell"><strong>4.- A la familia</strong></td>
+              </tr>
+              <tr>
+                <td className="pdf-text-cell" style={{ minHeight: '45px', height: '45px', verticalAlign: 'top' }}>
+                  {formData.sugerenciasFamilia}
+                </td>
+              </tr>
+              <tr>
+                <td className="pdf-subheading-cell"><strong>5.- Otros</strong></td>
+              </tr>
+              <tr>
+                <td className="pdf-text-cell" style={{ minHeight: '45px', height: '45px', verticalAlign: 'top' }}>
+                  {formData.sugerenciasOtros}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div className="pdf-section-title-bar">IDENTIFICACIÓN DEL PROFESIONAL QUE EMITE EL INFORME</div>
+          <table className="pdf-table-grid" style={{ marginBottom: '1rem' }}>
+            <tbody>
+              <tr>
+                <td className="pdf-label" style={{ width: '30%', padding: '0.3rem 0.5rem' }}>Nombre completo</td>
+                <td className="pdf-value" style={{ width: '70%', padding: '0.3rem 0.5rem' }}>{formData.profesionalNombre}</td>
+              </tr>
+              <tr>
+                <td className="pdf-label" style={{ padding: '0.3rem 0.5rem' }}>RUT</td>
+                <td className="pdf-value" style={{ padding: '0.3rem 0.5rem' }}>{formData.profesionalRut}</td>
+              </tr>
+              <tr>
+                <td className="pdf-label" style={{ padding: '0.3rem 0.5rem' }}>Profesión</td>
+                <td className="pdf-value" style={{ padding: '0.3rem 0.5rem' }}>{formData.profesionalProfesion}</td>
+              </tr>
+              <tr>
+                <td className="pdf-label" style={{ padding: '0.3rem 0.5rem' }}>N° de registro</td>
+                <td className="pdf-value" style={{ padding: '0.3rem 0.5rem' }}>{formData.profesionalRegistro}</td>
+              </tr>
+              <tr>
+                <td className="pdf-label" style={{ height: '60px', padding: '0.2rem 0.4rem' }}>Firma y Timbre</td>
+                <td className="pdf-value" style={{ height: '60px', padding: '0.2rem 0.4rem' }}></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div className="pdf-page-footer">
+            <div className="pdf-footer-text">No se debe modificar el formato oficial; cada apartado debe conservar su estructura e información base.</div>
+            <div className="pdf-footer-page-num">4</div>
+            <div className="pdf-footer-bar">
+              <div className="pdf-footer-bar-blue"></div>
+              <div className="pdf-footer-bar-red"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* PAGE 5 */}
+        <div className="pdf-page">
+          <div className="pdf-page-header">
+            <img src="/images/logo_mineduc.jpg" alt="Mineduc Logo" className="pdf-header-logo" />
+            <div className="pdf-header-text">
+              <div className="pdf-header-subtitle">Decreto 170/2010</div>
+              <div className="pdf-header-subtitle2">Evaluación Diagnóstica Integral de Necesidades Educativas Especiales</div>
+              <div className="pdf-header-title">INFORME DE EVALUACIÓN PSICOPEDAGÓGICA</div>
+              <div className="pdf-header-title-sub">(Detección de NEE)</div>
+            </div>
+            <img src="/images/logo_institucion.png" alt="Logo Institución" className="pdf-header-institution-logo" />
+          </div>
+
+          <div className="pdf-observation-title">
+            PAUTA DE EVALUACIÓN Y OBSERVACIÓN PEDAGÓGICA DEL ESTUDIANTE EN EL CONTEXTO ESCOLAR
+          </div>
+
+          <div className="pdf-section-title-bar-green">IDENTIFICACIÓN</div>
+          <table className="pdf-table-grid" style={{ marginBottom: '0.8rem' }}>
+            <tbody>
+              <tr>
+                <td className="pdf-label" style={{ width: '30%', padding: '0.3rem 0.5rem' }}>NOMBRE ESTUDIANTE</td>
+                <td className="pdf-value" style={{ width: '70%', padding: '0.3rem 0.5rem' }}>{formData.estudianteNombre}</td>
+              </tr>
+              <tr>
+                <td className="pdf-label" style={{ padding: '0.3rem 0.5rem' }}>CURSO</td>
+                <td className="pdf-value" style={{ padding: '0.3rem 0.5rem' }}>{formData.estudianteCurso}</td>
+              </tr>
+              <tr>
+                <td className="pdf-label" style={{ padding: '0.3rem 0.5rem' }}>FECHA DE APLICACIÓN</td>
+                <td className="pdf-value" style={{ padding: '0.3rem 0.5rem' }}>{formData.fechaAplicacionPauta ? formatDate(formData.fechaAplicacionPauta) : ''}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table className="pdf-table-scale" style={{ marginBottom: '0.8rem' }}>
+            <thead>
+              <tr>
+                <th colSpan={4}>Escala de logro para indicadores</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style={{ width: '25%' }}>
+                  <strong>1.- En inicio</strong>
+                  <p>El/la estudiante aún no cumple el indicador de forma independiente y requiere apoyo permanente.</p>
+                </td>
+                <td style={{ width: '25%' }}>
+                  <strong>2.- En desarrollo:</strong>
+                  <p>El/la estudiante cumple el indicador en algunas ocasiones o requiere apoyo frecuente.</p>
+                </td>
+                <td style={{ width: '25%' }}>
+                  <strong>3.- Logrado:</strong>
+                  <p>El/la estudiante cumple el indicador de manera constante y autónoma, o con los apoyos necesarios</p>
+                </td>
+                <td style={{ width: '25%' }}>
+                  <strong>N/O</strong>
+                  <p>No Observado</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table className="pdf-table-pauta">
+            <thead>
+              <tr>
+                <th style={{ width: '60%', textAlign: 'left', padding: '0.3rem 0.5rem' }}>Antecedentes pedagógicos</th>
+                <th style={{ width: '10%', padding: '0.3rem 0.5rem' }}>1</th>
+                <th style={{ width: '10%', padding: '0.3rem 0.5rem' }}>2</th>
+                <th style={{ width: '10%', padding: '0.3rem 0.5rem' }}>3</th>
+                <th style={{ width: '10%', padding: '0.3rem 0.5rem' }}>N/O</th>
+              </tr>
+            </thead>
+            <tbody>
+              {PEDAGOGICAL_ITEMS.map((item, idx) => {
+                const score = formData.pautaPedagogica[idx] || '';
+                return (
+                  <tr key={idx}>
+                    <td className="pdf-pauta-item-text" style={{ padding: '0.22rem 0.4rem', fontSize: '7.8pt' }}>{idx + 1}. {item}</td>
+                    {['1', '2', '3', 'N/O'].map(val => (
+                      <td key={val} className="pdf-pauta-score-cell" style={{ padding: '0.22rem 0.4rem' }}>
+                        <span className={`pdf-checkmark-circle ${score === val ? 'checked' : ''}`}></span>
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          <div className="pdf-page-footer">
+            <div className="pdf-footer-text">No se debe modificar el formato oficial; cada apartado debe conservar su estructura e información base.</div>
+            <div className="pdf-footer-page-num">5</div>
+            <div className="pdf-footer-bar">
+              <div className="pdf-footer-bar-blue"></div>
+              <div className="pdf-footer-bar-red"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* PAGE 6 */}
+        <div className="pdf-page">
+          <div className="pdf-page-header">
+            <img src="/images/logo_mineduc.jpg" alt="Mineduc Logo" className="pdf-header-logo" />
+            <div className="pdf-header-text">
+              <div className="pdf-header-subtitle">Decreto 170/2010</div>
+              <div className="pdf-header-subtitle2">Evaluación Diagnóstica Integral de Necesidades Educativas Especiales</div>
+              <div className="pdf-header-title">INFORME DE EVALUACIÓN PSICOPEDAGÓGICA</div>
+              <div className="pdf-header-title-sub">(Detección de NEE)</div>
+            </div>
+            <img src="/images/logo_institucion.png" alt="Logo Institución" className="pdf-header-institution-logo" />
+          </div>
+
+          <table className="pdf-table-pauta" style={{ marginTop: '0.2rem', marginBottom: '1.2rem' }}>
+            <thead>
+              <tr>
+                <th style={{ width: '60%', textAlign: 'left', padding: '0.3rem 0.5rem' }}>Antecedentes sociales y comunicativos</th>
+                <th style={{ width: '10%', padding: '0.3rem 0.5rem' }}>1</th>
+                <th style={{ width: '10%', padding: '0.3rem 0.5rem' }}>2</th>
+                <th style={{ width: '10%', padding: '0.3rem 0.5rem' }}>3</th>
+                <th style={{ width: '10%', padding: '0.3rem 0.5rem' }}>N/O</th>
+              </tr>
+            </thead>
+            <tbody>
+              {SOCIAL_ITEMS.map((item, idx) => {
+                const score = formData.pautaSocial[idx] || '';
+                return (
+                  <tr key={idx}>
+                    <td className="pdf-pauta-item-text" style={{ padding: '0.22rem 0.4rem', fontSize: '7.8pt' }}>{idx + 1}. {item}</td>
+                    {['1', '2', '3', 'N/O'].map(val => (
+                      <td key={val} className="pdf-pauta-score-cell" style={{ padding: '0.22rem 0.4rem' }}>
+                        <span className={`pdf-checkmark-circle ${score === val ? 'checked' : ''}`}></span>
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          <div className="pdf-section-title-bar-green">IDENTIFICACIÓN DEL DOCENTE DE AULA REGULAR QUE EMITE EL INFORME</div>
+          <table className="pdf-table-grid" style={{ marginBottom: '1rem' }}>
+            <tbody>
+              <tr>
+                <td className="pdf-label" style={{ width: '30%', padding: '0.3rem 0.5rem' }}>Nombre completo</td>
+                <td className="pdf-value" style={{ width: '70%', padding: '0.3rem 0.5rem' }}>{formData.docenteNombre}</td>
+              </tr>
+              <tr>
+                <td className="pdf-label" style={{ padding: '0.3rem 0.5rem' }}>RUT</td>
+                <td className="pdf-value" style={{ padding: '0.3rem 0.5rem' }}>{formData.docenteRut}</td>
+              </tr>
+              <tr>
+                <td className="pdf-label" style={{ padding: '0.3rem 0.5rem' }}>Profesión</td>
+                <td className="pdf-value" style={{ padding: '0.3rem 0.5rem' }}>{formData.docenteProfesion}</td>
+              </tr>
+              <tr>
+                <td className="pdf-label" style={{ height: '70px', padding: '0.3rem 0.5rem' }}>Firma</td>
+                <td className="pdf-value" style={{ height: '70px', padding: '0.3rem 0.5rem' }}></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div className="pdf-page-footer">
+            <div className="pdf-footer-text">No se debe modificar el formato oficial; cada apartado debe conservar su estructura e información base.</div>
+            <div className="pdf-footer-page-num">6</div>
+            <div className="pdf-footer-bar">
+              <div className="pdf-footer-bar-blue"></div>
+              <div className="pdf-footer-bar-red"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <PrintSettings />
       {toast && (
         <Toast 
@@ -1060,3 +1380,393 @@ export default function PsicopedagogicoForm({ params: paramsPromise }: { params:
     </div>
   );
 }
+
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
+
+  .animate-in {
+    animation: fadeIn 0.4s ease-out;
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+  label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.025em; }
+  
+  .select-input {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    background: #f8fafc;
+    font-family: inherit;
+  }
+  .select-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+    background: white;
+  }
+
+  .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+
+  .card {
+    background: white;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    padding: 2.5rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* --- Print layout css --- */
+  @media screen { 
+    .print-only { display: none !important; } 
+  }
+
+  @media print {
+    @page { 
+      size: letter !important;
+    }
+    
+    body { 
+      background: white !important; 
+      color: black !important; 
+      font-family: Arial, sans-serif !important; 
+      font-size: 8.5pt !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    
+    .no-print { display: none !important; }
+    .print-only { display: block !important; }
+    
+    .pdf-print-container {
+      display: block !important;
+      width: 100%;
+      margin: 0 auto;
+      background: white;
+    }
+
+    .pdf-page {
+      width: 100%;
+      height: 244mm;
+      box-sizing: border-box;
+      position: relative;
+      page-break-after: always;
+      break-after: page;
+      background: white;
+      color: black;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pdf-page-header {
+      display: flex;
+      align-items: center;
+      border-bottom: 2px solid black;
+      padding-bottom: 0.3rem;
+      margin-bottom: 0.4rem;
+    }
+    
+    .pdf-header-logo {
+      height: 55px;
+      margin-right: 1rem;
+    }
+
+    .pdf-header-institution-logo {
+      height: 2cm !important;
+      width: 2cm !important;
+      object-fit: contain !important;
+      margin-left: 1rem;
+    }
+
+    .pdf-header-text {
+      flex: 1;
+      text-align: center;
+    }
+
+    .pdf-header-subtitle {
+      font-size: 8pt;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .pdf-header-subtitle2 {
+      font-size: 7.5pt;
+      margin: 1px 0;
+    }
+
+    .pdf-header-title {
+      font-size: 11pt;
+      font-weight: 900;
+      margin: 2px 0;
+      letter-spacing: -0.5px;
+    }
+
+    .pdf-header-title-sub {
+      font-size: 8.5pt;
+      font-weight: bold;
+      font-style: italic;
+    }
+
+    .pdf-section-title-bar {
+      background: #e5e7eb;
+      border: 1px solid black;
+      border-bottom: none;
+      padding: 0.2rem 0.4rem;
+      font-weight: bold;
+      font-size: 8pt;
+      text-transform: uppercase;
+      color: black;
+    }
+
+    .pdf-section-title-bar-green {
+      background: #d1e2dd;
+      border: 1px solid black;
+      border-bottom: none;
+      padding: 0.2rem 0.4rem;
+      font-weight: bold;
+      font-size: 8pt;
+      text-transform: uppercase;
+      color: black;
+    }
+
+    .pdf-section-subtitle-bar {
+      border-left: 1px solid black;
+      border-right: 1px solid black;
+      padding: 0.15rem 0.5rem;
+      font-size: 7.5pt;
+      font-style: italic;
+      color: #374151;
+      background: white;
+    }
+
+    .pdf-observation-title {
+      text-align: center;
+      font-weight: bold;
+      font-size: 10pt;
+      margin: 0.2rem 0 0.8rem 0;
+      border-bottom: 2px solid black;
+      padding-bottom: 0.2rem;
+    }
+
+    .pdf-table-grid {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid black;
+    }
+
+    .pdf-table-grid td {
+      border: 1px solid black;
+      padding: 0.18rem 0.4rem !important;
+      font-size: 8pt !important;
+    }
+
+    .pdf-label {
+      font-weight: bold;
+      color: black;
+      background: #f3f4f6;
+      font-size: 7.5pt !important;
+      padding: 0.18rem 0.4rem !important;
+    }
+
+    .pdf-value {
+      font-weight: normal;
+      color: black;
+    }
+
+    .pdf-table-header-cell {
+      background: #e5e7eb;
+      font-weight: bold;
+      text-align: center;
+      font-size: 8pt;
+    }
+
+    .pdf-subheading-cell {
+      background: #f3f4f6;
+      padding: 0.25rem 0.5rem !important;
+    }
+
+    .pdf-subheading-cell strong {
+      display: block;
+      font-size: 8pt;
+    }
+
+    .pdf-desc-text {
+      display: block;
+      font-size: 7.2pt;
+      font-weight: normal;
+      color: #4b5563;
+      font-style: italic;
+      margin-top: 1px;
+      line-height: 1.25;
+    }
+
+    .pdf-text-cell {
+      padding: 0.3rem !important;
+      font-size: 8pt !important;
+      line-height: 1.3 !important;
+      white-space: pre-wrap;
+      color: black;
+    }
+
+    .pdf-table-scale {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid black;
+    }
+
+    .pdf-table-scale th {
+      background: #d1e2dd;
+      border: 1px solid black;
+      padding: 0.25rem;
+      font-size: 8pt;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .pdf-table-scale td {
+      border: 1px solid black;
+      padding: 0.3rem 0.4rem;
+      font-size: 7.2pt;
+      vertical-align: top;
+      background: #f0f6f4;
+    }
+
+    .pdf-table-scale td strong {
+      display: block;
+      font-size: 7.5pt;
+      margin-bottom: 2px;
+    }
+
+    .pdf-table-scale td p {
+      margin: 0;
+      line-height: 1.2;
+      color: #374151;
+    }
+
+    .pdf-table-pauta {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid black;
+    }
+
+    .pdf-table-pauta th {
+      background: #d1e2dd;
+      border: 1px solid black;
+      padding: 0.3rem 0.5rem;
+      font-size: 8pt;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .pdf-table-pauta td {
+      border: 1px solid black;
+      padding: 0.35rem 0.4rem;
+      font-size: 8pt;
+    }
+
+    .pdf-pauta-item-text {
+      font-weight: 500;
+      line-height: 1.25;
+      color: black;
+    }
+
+    .pdf-pauta-score-cell {
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .pdf-checkmark-circle {
+      display: inline-block;
+      width: 13px;
+      height: 13px;
+      border: 1px solid black;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .pdf-checkmark-circle.checked::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 7px;
+      height: 7px;
+      background: black;
+      border-radius: 50%;
+    }
+
+    .pdf-page-footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .pdf-footer-text {
+      font-size: 6.8pt;
+      color: #4b5563;
+      text-align: center;
+      margin-bottom: 2px;
+    }
+
+    .pdf-footer-page-num {
+      font-size: 8pt;
+      font-weight: bold;
+      text-align: right;
+      margin-right: 0.5rem;
+    }
+
+    .pdf-footer-bar {
+      display: flex;
+      height: 3.5px;
+      width: 100%;
+    }
+
+    .pdf-footer-bar-blue {
+      width: 40%;
+      background: #1e3a8a;
+    }
+
+    .pdf-footer-bar-red {
+      width: 60%;
+      background: #dc2626;
+    }
+  }
+`;
+
+// Inject styles tag dynamically
+if (typeof document !== 'undefined') {
+  const id = 'pdf-print-styles';
+  let el = document.getElementById(id);
+  if (!el) {
+    el = document.createElement('style');
+    el.id = id;
+    el.innerHTML = styles;
+    document.head.appendChild(el);
+  } else {
+    el.innerHTML = styles;
+  }
+}
+

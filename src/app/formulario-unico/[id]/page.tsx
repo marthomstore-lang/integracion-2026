@@ -471,11 +471,10 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
         .btn:active { transform: translateY(0); }
         .btn-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-        /* DOCUMENT STYLING - PREMIUM PRINT FORMAT */
         .document-sheet {
           background: white;
-          width: 210mm;
-          min-height: 297mm;
+          width: 8.5in;
+          min-height: 11in;
           margin: 0 auto;
           padding: 10mm 12mm;
           position: relative;
@@ -686,8 +685,8 @@ export default function FormularioUnico({ params: paramsPromise }: { params: Pro
 
         @media print {
           @page { 
-            margin: 0; 
-            size: A4; 
+            margin: 0 !important; 
+            size: letter !important; 
           }
           body { background: white; }
           .form-container { padding: 0; background: white; }
