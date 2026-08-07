@@ -14,6 +14,7 @@ function ReportsMenu({ pathname, isCollapsed }: { pathname: string, isCollapsed:
         pathname?.includes('/plan-tea') || 
         pathname?.includes('/formulario-unico') ||
         pathname?.includes('/evaluacion-psicopedagogica') ||
+        pathname?.includes('/certificado-simce') ||
         pathname === '/informes') {
       setReportsOpen(true);
     }
@@ -24,6 +25,7 @@ function ReportsMenu({ pathname, isCollapsed }: { pathname: string, isCollapsed:
                         pathname?.includes('/plan-tea') || 
                         pathname?.includes('/formulario-unico') ||
                         pathname?.includes('/evaluacion-psicopedagogica') ||
+                        pathname?.includes('/certificado-simce') ||
                         pathname === '/informes';
     return (
       <Link href="/informes" className="sidebar-link" style={{
@@ -93,6 +95,11 @@ function ReportsMenu({ pathname, isCollapsed }: { pathname: string, isCollapsed:
             href="/informes?type=psicopedagogico" 
             label="Informe Psicopedagógico" 
             active={(pathname === '/informes' && type === 'psicopedagogico') || pathname?.includes('/evaluacion-psicopedagogica/')} 
+          />
+          <SidebarSubLink 
+            href="/informes?type=simce" 
+            label="Certificado SIMCE" 
+            active={(pathname === '/informes' && type === 'simce') || pathname?.includes('/certificado-simce/')} 
           />
         </div>
       )}

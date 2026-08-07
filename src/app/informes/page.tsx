@@ -19,7 +19,8 @@ function InformesContent() {
   const filterType = typeParam === 'tea' ? 'PAEC' : 
                     typeParam === 'familia' ? 'Familia' : 
                     typeParam === 'unico' ? 'Único' : 
-                    typeParam === 'psicopedagogico' ? 'Psicopedagógico' : 'Todos';
+                    typeParam === 'psicopedagogico' ? 'Psicopedagógico' : 
+                    typeParam === 'simce' ? 'SIMCE' : 'Todos';
 
   useEffect(() => {
     if (runParam) setSearchQuery(runParam);
@@ -59,12 +60,12 @@ function InformesContent() {
       <header style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>
-            {filterType === 'Todos' ? '📄 Gestión de Informes' : filterType === 'PAEC' ? '📄 Plan de Manejo Individual (PAEC)' : filterType === 'Psicopedagógico' ? '📄 Informe de Evaluación Psicopedagógica (NEE)' : `📄 Informe ${filterType}`}
+            {filterType === 'Todos' ? '📄 Gestión de Informes' : filterType === 'PAEC' ? '📄 Plan de Manejo Individual (PAEC)' : filterType === 'Psicopedagógico' ? '📄 Informe de Evaluación Psicopedagógica (NEE)' : filterType === 'SIMCE' ? '📄 Certificado SIMCE (NEEP)' : `📄 Informe ${filterType}`}
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '1.125rem' }}>
             {filterType === 'Todos' 
               ? 'Administración y seguimiento de documentos técnicos PIE.' 
-              : `Listado de estudiantes para generar o editar el ${filterType === 'PAEC' ? 'Plan de Manejo Individual' : filterType === 'Psicopedagógico' ? 'Informe de Evaluación Psicopedagógica' : `Informe de ${filterType}`}.`}
+              : `Listado de estudiantes para generar o editar el ${filterType === 'PAEC' ? 'Plan de Manejo Individual' : filterType === 'Psicopedagógico' ? 'Informe de Evaluación Psicopedagógica' : filterType === 'SIMCE' ? 'Certificado SIMCE' : `Informe de ${filterType}`}.`}
           </p>
         </div>
         {filterType !== 'Todos' && (
@@ -159,7 +160,7 @@ function InformesContent() {
                     {(student.status_informe || student.estado) === 'COMPLETE' ? '● COMPLETO' : '○ PENDIENTE'}
                   </div>
                 </td>
-                <td style={{ width: '420px' }}>
+                <td style={{ width: '490px' }}>
                   <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
                     {(filterType === 'Todos' || filterType === 'Familia') && (
                       <Link 
@@ -229,6 +230,24 @@ function InformesContent() {
                         }}
                       >
                         {filterType === 'Psicopedagógico' ? '+ AGREGAR INFORME PSICOPEDAGÓGICO' : 'PSICOPED.'}
+                      </Link>
+                    )}
+
+                    {(filterType === 'Todos' || filterType === 'SIMCE') && (
+                      <Link 
+                        href={`/certificado-simce/${student.id}`} 
+                        className="btn" 
+                        style={{ 
+                          padding: '0.35rem 0.6rem', 
+                          fontSize: '0.7rem', 
+                          background: filterType === 'SIMCE' ? '#e11d48' : '#fff1f2', 
+                          color: filterType === 'SIMCE' ? 'white' : '#e11d48',
+                          fontWeight: 700,
+                          border: '1px solid #ffe4e6',
+                          flex: filterType === 'SIMCE' ? 1 : 'none'
+                        }}
+                      >
+                        {filterType === 'SIMCE' ? '+ CERTIFICADO SIMCE' : 'SIMCE'}
                       </Link>
                     )}
                   </div>
